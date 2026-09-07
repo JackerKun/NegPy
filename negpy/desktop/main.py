@@ -16,6 +16,7 @@ from negpy.services.assets.flatfield_migration import migrate_legacy_flatfield_p
 from negpy.services.assets.gear import GearProfiles
 from negpy.services.assets.gear_preset_migration import migrate_gear_presets
 from negpy.kernel.system.config import APP_CONFIG, BASE_USER_DIR
+from negpy.kernel.system.i18n import set_language
 from negpy.kernel.system.logging import get_logger, setup_logging
 from negpy.kernel.system.override import apply as apply_override
 from negpy.kernel.system.override import apply_stored as apply_stored_override
@@ -246,6 +247,10 @@ def main() -> None:
         set_gain_provider(FlatFieldProfiles.load_gain)
         migrate_legacy_flatfield_profiles(repo)
         migrate_gear_presets(repo)
+
+        # Interface language. Resolved before QApplication so every widget built from here
+        # on reads the active catalog; a change takes effect on the next launch, like scale.
+        set_language(str(repo.get_global_setting("language", "system") or "system"))
 
         scale = float(repo.get_global_setting("ui_scale", 1.0) or 1.0)
         scale = max(0.8, min(1.2, scale))

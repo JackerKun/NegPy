@@ -17,6 +17,7 @@ from negpy.domain.models import WorkspaceConfig
 from negpy.features.metadata.capture import place_summary
 from negpy.features.metadata.models import GEAR_FIELDS, PROCESS_FIELDS, PUSH_PULL_LABELS, SCANNING_FIELDS
 from negpy.features.process.models import invalidate_local_bounds
+from negpy.kernel.system.i18n import tr
 from negpy.services.assets.presets import preset_fields
 
 
@@ -51,13 +52,13 @@ class SettingRow:
 
 def _fmt_scalar(v) -> str:
     if isinstance(v, bool):
-        return "on" if v else "off"
+        return tr("on") if v else tr("off")
     if v is None:
         return "—"
     if isinstance(v, float):
         return f"{v:g}"
     if isinstance(v, (tuple, list)):
-        return "set"
+        return tr("set")
     return str(v)
 
 
@@ -395,7 +396,7 @@ def preset_values(data: Mapping[str, Any], section: str = "") -> list[tuple[str,
     """Each row a preset stores, as (label, formatted value)."""
     cfg = preset_config(data)
     rows = rows_for_keys(data, section)
-    return [(r.label, _format(r, tuple(getattr(getattr(cfg, r.section), f) for f in r.fields))) for r in rows]
+    return [(tr(r.label), _format(r, tuple(getattr(getattr(cfg, r.section), f) for f in r.fields))) for r in rows]
 
 
 def preset_summary(data: Mapping[str, Any]) -> str:
@@ -404,7 +405,7 @@ def preset_summary(data: Mapping[str, Any]) -> str:
     deliberately store a default value. Unknown keys are skipped."""
     lines = []
     for title, rows in CATALOG:
-        labels = [r.label for r in rows if any(f in data for f in r.fields)]
+        labels = [tr(r.label) for r in rows if any(f in data for f in r.fields)]
         if labels:
-            lines.append(f"{title}: {', '.join(labels)}")
+            lines.append(f"{tr(title)}: {', '.join(labels)}")
     return "\n".join(lines)
