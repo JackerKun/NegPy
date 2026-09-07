@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 )
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.services.assets.library import folder_counts, summarize_counts
 
 _PATH_ROLE = Qt.ItemDataRole.UserRole
@@ -79,13 +80,13 @@ class LibraryTree(QWidget):
 
         self.add_root_btn = QToolButton()
         self.add_root_btn.setIcon(qta.icon("fa5s.plus", color=THEME.text_primary))
-        self.add_root_btn.setToolTip("Add a library folder")
+        self.add_root_btn.setToolTip(tr("Add a library folder"))
         self.add_root_btn.setFixedSize(20, 20)
         self.add_root_btn.clicked.connect(self.add_root)
 
         self.refresh_btn = QToolButton()
         self.refresh_btn.setIcon(qta.icon("fa5s.sync-alt", color=THEME.text_primary))
-        self.refresh_btn.setToolTip("Re-read the folders from disk")
+        self.refresh_btn.setToolTip(tr("Re-read the folders from disk"))
         self.refresh_btn.setFixedSize(20, 20)
         self.refresh_btn.clicked.connect(self._on_refresh)
 
@@ -118,7 +119,7 @@ class LibraryTree(QWidget):
             shortcut.activated.connect(self.open_selection)
         layout.addWidget(self.tree, 1)
 
-        self.empty_label = QLabel("Add a folder to browse your library")
+        self.empty_label = QLabel(tr("Add a folder to browse your library"))
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty_label.setWordWrap(True)
         self.empty_label.setStyleSheet(f"color: {THEME.text_hint}; font-size: {THEME.font_size_small}px;")
@@ -142,7 +143,7 @@ class LibraryTree(QWidget):
         """Add a library folder, asking for one when not given. Returns the path added."""
         if not path:
             start = self.repo.get_global_setting("last_open_folder", "") or ""
-            path = QFileDialog.getExistingDirectory(self, "Choose your library folder", start)
+            path = QFileDialog.getExistingDirectory(self, tr("Choose your library folder"), start)
         if not path:
             return ""
         roots = self.roots()
@@ -303,14 +304,14 @@ class LibraryTree(QWidget):
             path = item.data(0, _PATH_ROLE)
             selected = self.selected_paths()
             paths = selected if path in selected and len(selected) > 1 else [path]
-            label = f"Open {len(paths)} folders" if len(paths) > 1 else "Open folder"
+            label = tr("Open {count} folders").format(count=len(paths)) if len(paths) > 1 else tr("Open folder")
             menu.addAction(label).triggered.connect(lambda: self.folders_activated.emit(paths))
-            menu.addAction("Add to session").triggered.connect(lambda: self.folders_appended.emit(paths))
+            menu.addAction(tr("Add to session")).triggered.connect(lambda: self.folders_appended.emit(paths))
             menu.addSeparator()
             if item.data(0, _IS_ROOT_ROLE):
-                menu.addAction("Remove from library").triggered.connect(lambda: self.remove_root(path))
-        menu.addAction("Add library folder…").triggered.connect(lambda: self.add_root())
-        menu.addAction("Refresh").triggered.connect(self._on_refresh)
+                menu.addAction(tr("Remove from library")).triggered.connect(lambda: self.remove_root(path))
+        menu.addAction(tr("Add library folder…")).triggered.connect(lambda: self.add_root())
+        menu.addAction(tr("Refresh")).triggered.connect(self._on_refresh)
         menu.exec(self.tree.viewport().mapToGlobal(pos))
 
 

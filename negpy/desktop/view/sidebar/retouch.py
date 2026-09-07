@@ -6,6 +6,7 @@ from negpy.desktop.session import ToolMode
 from negpy.desktop.view.styles.templates import field_label, section_subheader, wrap_tooltip
 from negpy.desktop.view.styles.theme import THEME
 from negpy.features.retouch.models import IR_METHOD_NEGPY, IR_METHOD_OPENICE
+from negpy.kernel.system.i18n import tr
 
 _IR_REMOVAL_TIP = (
     "Use the scanner's infrared channel to remove dust and scratches (invisible to the color dyes): faint "
@@ -16,7 +17,7 @@ _IR_THRESH_TIP = "Lower catches more dust, higher is conservative. Smooth respon
 # Order matches _IR_METHOD_KEYS.
 _IR_METHOD_LABELS = ("NegPy", "OpenICE")
 _IR_METHOD_KEYS = (IR_METHOD_NEGPY, IR_METHOD_OPENICE)
-_IR_METHOD_TIP = wrap_tooltip(
+_IR_METHOD_TIP = (
     "How the film under a defect is rebuilt. NegPy divides semi-transparent dust out, fills "
     "opaque cores with a weighted average of the clean film around them, and transplants grain "
     "from the nearest clean pixel. OpenICE works in log density and restores detail instead of "
@@ -38,39 +39,42 @@ class RetouchSidebar(BaseSidebar):
         conf = self.state.config.retouch
 
         # --- Overlay inspector (applies to every detection source) ----------
-        self.overlay_btn = QPushButton(" Overlay: Off")
+        self.overlay_btn = QPushButton(tr(" Overlay: {label}").format(label=tr("Off")))
         self.overlay_btn.setIcon(qta.icon("fa5s.eye", color=THEME.text_primary))
         self.overlay_btn.setToolTip(
-            "Cycle the dust-detection overlay: Off → Marked → IR. Enable Optical / IR Removal so the overlay has detected spots to show."
+            tr(
+                "Cycle the dust-detection overlay: Off → Marked → IR. Enable Optical / IR Removal so the overlay "
+                "has detected spots to show."
+            )
         )
         self.layout.addWidget(self.overlay_btn)
 
         # --- OPTICAL REMOVAL (visible-scan speck detection) -----------------
-        self.layout.addWidget(section_subheader("OPTICAL REMOVAL"))
-        self.auto_dust_btn = self._small_toggle("fa5s.magic", "Optical Removal", conf.dust_remove, _OPTICAL_TIP)
+        self.layout.addWidget(section_subheader(tr("OPTICAL REMOVAL")))
+        self.auto_dust_btn = self._small_toggle("fa5s.magic", tr("Optical Removal"), conf.dust_remove, tr(_OPTICAL_TIP))
         self.layout.addWidget(self.auto_dust_btn)
         auto_row = QHBoxLayout()
-        self.threshold_slider = CompactSlider("Threshold", 0.01, 1.0, conf.dust_threshold)
-        self.auto_size_slider = CompactSlider("Size", 3.0, 8.0, float(conf.dust_size), step=1.0, precision=1, unit=" px")
+        self.threshold_slider = CompactSlider(tr("Threshold"), 0.01, 1.0, conf.dust_threshold)
+        self.auto_size_slider = CompactSlider(tr("Size"), 3.0, 8.0, float(conf.dust_size), step=1.0, precision=1, unit=" px")
         auto_row.addWidget(self.threshold_slider)
         auto_row.addWidget(self.auto_size_slider)
         self.layout.addLayout(auto_row)
 
         # --- IR REMOVAL ------------------------------------------------------
-        self.ir_subheader = section_subheader("IR REMOVAL")
+        self.ir_subheader = section_subheader(tr("IR REMOVAL"))
         self.layout.addWidget(self.ir_subheader)
         method_row = QHBoxLayout()
-        self.ir_method_label = field_label("Method")
+        self.ir_method_label = field_label(tr("Method"))
         self.ir_method_combo = QComboBox()
         self.ir_method_combo.addItems(_IR_METHOD_LABELS)
-        self.ir_method_combo.setToolTip(_IR_METHOD_TIP)
+        self.ir_method_combo.setToolTip(wrap_tooltip(tr(_IR_METHOD_TIP)))
         method_row.addWidget(self.ir_method_label)
         method_row.addWidget(self.ir_method_combo, 1)
         self.layout.addLayout(method_row)
 
-        self.ir_dust_btn = self._small_toggle("fa5s.broom", "IR Removal", conf.ir_dust_remove, _IR_REMOVAL_TIP)
-        self.ir_threshold_slider = CompactSlider("IR Threshold", 0.05, 0.95, float(conf.ir_threshold))
-        self.ir_threshold_slider.setToolTip(_IR_THRESH_TIP)
+        self.ir_dust_btn = self._small_toggle("fa5s.broom", tr("IR Removal"), conf.ir_dust_remove, tr(_IR_REMOVAL_TIP))
+        self.ir_threshold_slider = CompactSlider(tr("IR Threshold"), 0.05, 0.95, float(conf.ir_threshold))
+        self.ir_threshold_slider.setToolTip(tr(_IR_THRESH_TIP))
         ir_row = QHBoxLayout()
         ir_row.addWidget(self.ir_dust_btn, stretch=1)
         ir_row.addWidget(self.ir_threshold_slider, stretch=1)
@@ -78,59 +82,67 @@ class RetouchSidebar(BaseSidebar):
 
         # Restored whenever the scan has IR (never let a stale "No IR channel" tip linger).
         self._ir_tooltips = {
-            self.ir_subheader: "Detect and remove dust/scratches using the scanner's infrared channel",
-            self.ir_dust_btn: _IR_REMOVAL_TIP,
-            self.ir_threshold_slider: _IR_THRESH_TIP,
-            self.ir_method_label: _IR_METHOD_TIP,
-            self.ir_method_combo: _IR_METHOD_TIP,
+            self.ir_subheader: tr("Detect and remove dust/scratches using the scanner's infrared channel"),
+            self.ir_dust_btn: tr(_IR_REMOVAL_TIP),
+            self.ir_threshold_slider: tr(_IR_THRESH_TIP),
+            self.ir_method_label: wrap_tooltip(tr(_IR_METHOD_TIP)),
+            self.ir_method_combo: wrap_tooltip(tr(_IR_METHOD_TIP)),
         }
 
         # --- MANUAL HEAL (bottom) -------------------------------------------
-        self.heals_subheader = section_subheader("MANUAL HEAL · 0")
+        self.heals_subheader = section_subheader(tr("MANUAL HEAL · {n}").format(n=0))
         self.layout.addWidget(self.heals_subheader)
         tools_row = QHBoxLayout()
         self.pick_dust_btn = self._tool_toggle(
             "fa5s.eye-dropper",
-            "Heal Tool",
-            "Paint over dust to heal it. The brush is a search area — only the marks inside it are repaired, clean grain is left alone",
+            tr("Heal Tool"),
+            tr("Paint over dust to heal it. The brush is a search area — only the marks inside it are repaired, clean grain is left alone"),
         )
         self.pick_scratch_btn = self._tool_toggle(
             "fa5s.pen-nib",
-            "Scratch Tool",
-            "Heal a scratch or hair: click points along it, double-click or Enter to finish, Esc cancels. "
-            "Backspace deletes the last entered point; right-click an existing scratch overlay to delete it",
+            tr("Scratch Tool"),
+            tr(
+                "Heal a scratch or hair: click points along it, double-click or Enter to finish, Esc cancels. "
+                "Backspace deletes the last entered point; right-click an existing scratch overlay to delete it"
+            ),
         )
         self.pick_line_btn = self._tool_toggle(
             "fa5s.grip-lines",
-            "Transport Line",
-            "Remove a transport scratch: click once on it and the whole line is traced and repaired. "
-            "For the long straight marks the film picks up running through a camera or lab — too faint "
-            "along any single pixel for the brush to find",
+            tr("Transport Line"),
+            tr(
+                "Remove a transport scratch: click once on it and the whole line is traced and repaired. "
+                "For the long straight marks the film picks up running through a camera or lab — too faint "
+                "along any single pixel for the brush to find"
+            ),
         )
         tools_row.addWidget(self.pick_dust_btn)
         tools_row.addWidget(self.pick_scratch_btn)
         tools_row.addWidget(self.pick_line_btn)
         self.layout.addLayout(tools_row)
 
-        self.manual_size_slider = CompactSlider("Brush Size", 2.0, 16.0, float(conf.manual_dust_size), step=1.0, precision=1, unit=" px")
-        self.manual_size_slider.setToolTip("Diameter of the manual brush, matching the on-screen cursor")
+        self.manual_size_slider = CompactSlider(
+            tr("Brush Size"), 2.0, 16.0, float(conf.manual_dust_size), step=1.0, precision=1, unit=" px"
+        )
+        self.manual_size_slider.setToolTip(tr("Diameter of the manual brush, matching the on-screen cursor"))
         self.layout.addWidget(self.manual_size_slider)
 
-        self.line_threshold_slider = CompactSlider("Line Sensitivity", 0.05, 0.95, float(conf.scratch_threshold))
+        self.line_threshold_slider = CompactSlider(tr("Line Sensitivity"), 0.05, 0.95, float(conf.scratch_threshold))
         self.line_threshold_slider.setToolTip(
-            "How readily a scratch is followed. Lower catches fainter lines and repairs a wider band; "
-            "raise it if the line is picking up film either side"
+            tr(
+                "How readily a scratch is followed. Lower catches fainter lines and repairs a wider band; "
+                "raise it if the line is picking up film either side"
+            )
         )
         self.layout.addWidget(self.line_threshold_slider)
 
         actions_row = QHBoxLayout()
-        self.undo_btn = QPushButton(" Undo Last")
+        self.undo_btn = QPushButton(tr(" Undo Last"))
         self.undo_btn.setIcon(qta.icon("fa5s.undo", color=THEME.text_primary))
-        self.undo_btn.setToolTip("Remove the most recent manual heal")
+        self.undo_btn.setToolTip(tr("Remove the most recent manual heal"))
 
-        self.clear_btn = QPushButton(" Clear All")
+        self.clear_btn = QPushButton(tr(" Clear All"))
         self.clear_btn.setIcon(qta.icon("fa5s.trash-alt", color=THEME.text_primary))
-        self.clear_btn.setToolTip("Remove all manual heals (auto-detected dust is unaffected)")
+        self.clear_btn.setToolTip(tr("Remove all manual heals (auto-detected dust is unaffected)"))
 
         actions_row.addWidget(self.undo_btn, 1)
         actions_row.addWidget(self.clear_btn, 1)
@@ -178,8 +190,8 @@ class RetouchSidebar(BaseSidebar):
         self._sync_overlay_label()
 
     def _sync_overlay_label(self) -> None:
-        label = {"off": "Off", "marked": "Marked", "ir": "IR"}.get(self.state.dust_overlay_mode, "Off")
-        self.overlay_btn.setText(f" Overlay: {label}")
+        label = {"off": tr("Off"), "marked": tr("Marked"), "ir": tr("IR")}.get(self.state.dust_overlay_mode, tr("Off"))
+        self.overlay_btn.setText(tr(" Overlay: {label}").format(label=label))
 
     def _on_pick_toggled(self, checked: bool) -> None:
         self.controller.set_active_tool(ToolMode.DUST_PICK if checked else ToolMode.NONE)
@@ -198,7 +210,7 @@ class RetouchSidebar(BaseSidebar):
     def _set_ir_controls_enabled(self, enabled: bool) -> None:
         for w, tip in self._ir_tooltips.items():
             w.setEnabled(enabled)
-            w.setToolTip(tip if enabled else "No IR channel in this scan")
+            w.setToolTip(tip if enabled else tr("No IR channel in this scan"))
 
     def sync_ui(self) -> None:
         conf = self.state.config.retouch
@@ -216,7 +228,7 @@ class RetouchSidebar(BaseSidebar):
             self.line_threshold_slider.setVisible(self.state.active_tool == ToolMode.SCRATCH_LINE)
 
             num_heals = len(conf.manual_dust_spots) + len(conf.manual_heal_strokes) + len(conf.scratch_lines)
-            self.heals_subheader.setText(f"MANUAL HEAL · {num_heals}")
+            self.heals_subheader.setText(tr("MANUAL HEAL · {n}").format(n=num_heals))
 
             has_heals = num_heals > 0
             self.undo_btn.setEnabled(has_heals)
@@ -230,7 +242,9 @@ class RetouchSidebar(BaseSidebar):
             self.ir_method_combo.setCurrentIndex(_IR_METHOD_KEYS.index(method))
             self._set_ir_controls_enabled(self.state.has_ir)
             if self.state.has_ir and self.state.ir_degenerate:
-                self.ir_dust_btn.setToolTip("IR channel carries image content (B&W / Kodachrome) — IR correction disabled for this frame")
+                self.ir_dust_btn.setToolTip(
+                    tr("IR channel carries image content (B&W / Kodachrome) — IR correction disabled for this frame")
+                )
 
             self._sync_overlay_label()
         finally:

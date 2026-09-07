@@ -11,6 +11,7 @@ from negpy.desktop.view.widgets.collapsible import CollapsibleSection
 from negpy.desktop.view.widgets.charts import MiniHistogramWidget, MiniRGBHistogramWidget
 from negpy.desktop.view.widgets.section_help_dialog import SectionHelpDialog, has_guide
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.features.exposure.models import ExposureConfig
 from negpy.features.lab.models import LabConfig
 from negpy.features.altprocess.models import AltProcessConfig
@@ -142,7 +143,7 @@ class ControlsPanel(QWidget):
 
         self.presets_sidebar = PresetsSidebar(self.controller)
         self.presets_section = self._make_section(
-            "Presets",
+            tr("Presets"),
             "presets",
             self.presets_sidebar,
             icon=qta.icon("fa5s.magic", color=icon_color),
@@ -150,7 +151,7 @@ class ControlsPanel(QWidget):
 
         self.flatfield_sidebar = FlatFieldSidebar(self.controller)
         self.flatfield_section = self._make_section(
-            "Flat Field",
+            tr("Flat Field"),
             "flatfield",
             self.flatfield_sidebar,
             icon=qta.icon("fa5s.adjust", color=icon_color),
@@ -158,7 +159,7 @@ class ControlsPanel(QWidget):
 
         self.geometry_sidebar = GeometrySidebar(self.controller)
         self.geometry_section = self._make_section(
-            "Geometry",
+            tr("Geometry"),
             "geometry",
             self.geometry_sidebar,
             icon=qta.icon("fa5s.crop", color=icon_color),
@@ -166,7 +167,7 @@ class ControlsPanel(QWidget):
 
         self.process_sidebar = ProcessSidebar(self.controller)
         self.process_section = self._make_section(
-            "Normalization",
+            tr("Normalization"),
             "process",
             self.process_sidebar,
             icon=qta.icon("fa5s.cogs", color=icon_color),
@@ -176,7 +177,7 @@ class ControlsPanel(QWidget):
         self.sensor_section = self._make_section(
             # Bare name: it holds the crosstalk matrix and Hue Trim as well as the sensor unmix. The
             # persisted "sensor" section key stays.
-            "Calibration",
+            tr("Calibration"),
             "sensor",
             self.sensor_sidebar,
             icon=qta.icon("fa5s.vials", color=icon_color),
@@ -184,7 +185,7 @@ class ControlsPanel(QWidget):
 
         self.demosaic_sidebar = DemosaicSidebar(self.controller)
         self.demosaic_section = self._make_section(
-            "Demosaic",
+            tr("Demosaic"),
             "demosaic",
             self.demosaic_sidebar,
             icon=qta.icon("mdi6.grid", color=icon_color),
@@ -192,7 +193,7 @@ class ControlsPanel(QWidget):
 
         self.roll_sidebar = RollAnalysisSidebar(self.controller)
         self.roll_section = self._make_section(
-            "Roll Analysis",
+            tr("Roll Analysis"),
             "roll",
             self.roll_sidebar,
             icon=qta.icon("mdi6.film", color=icon_color),
@@ -203,7 +204,7 @@ class ControlsPanel(QWidget):
         # "Filtration", not "Color", which names the Lab & Toning tab. The persisted "color"
         # section key stays.
         self.color_section = self._make_section(
-            "Filtration",
+            tr("Filtration"),
             "color",
             self.color_sidebar,
             icon=qta.icon("fa5s.palette", color=icon_color),
@@ -213,7 +214,7 @@ class ControlsPanel(QWidget):
         self.tone_sidebar = ToneSidebar(self.controller)
         self.tone_histogram = MiniHistogramWidget()
         self.tone_section = self._make_section(
-            "Tone",
+            tr("Tone"),
             "tone",
             self.tone_sidebar,
             icon=qta.icon("fa5s.sun", color=icon_color),
@@ -222,7 +223,7 @@ class ControlsPanel(QWidget):
 
         self.lab_sidebar = LabSidebar(self.controller)
         self.lab_section = self._make_section(
-            "Lab",
+            tr("Lab"),
             "lab",
             self.lab_sidebar,
             icon=qta.icon("fa5s.flask", color=icon_color),
@@ -230,7 +231,7 @@ class ControlsPanel(QWidget):
 
         self.altproc_sidebar = AltProcessSidebar(self.controller)
         self.altproc_section = self._make_section(
-            "Alternative Processes",
+            tr("Alternative Processes"),
             "altproc",
             self.altproc_sidebar,
             icon=qta.icon("fa5s.fire", color=icon_color),
@@ -238,7 +239,7 @@ class ControlsPanel(QWidget):
 
         self.toning_sidebar = ToningSidebar(self.controller)
         self.toning_section = self._make_section(
-            "Toning",
+            tr("Toning"),
             "toning",
             self.toning_sidebar,
             icon=qta.icon("fa5s.tint", color=icon_color),
@@ -246,7 +247,7 @@ class ControlsPanel(QWidget):
 
         self.retouch_sidebar = RetouchSidebar(self.controller)
         self.retouch_section = self._make_section(
-            "Retouch",
+            tr("Retouch"),
             "retouch",
             self.retouch_sidebar,
             icon=qta.icon("fa5s.brush", color=icon_color),
@@ -254,7 +255,7 @@ class ControlsPanel(QWidget):
 
         self.local_sidebar = LocalSidebar(self.controller)
         self.local_section = self._make_section(
-            "Dodge & Burn",
+            tr("Dodge & Burn"),
             "local",
             self.local_sidebar,
             icon=qta.icon("fa5s.adjust", color=icon_color),
@@ -262,7 +263,7 @@ class ControlsPanel(QWidget):
 
         self.finish_sidebar = FinishSidebar(self.controller)
         self.finish_section = self._make_section(
-            "Finishing",
+            tr("Finishing"),
             "finish",
             self.finish_sidebar,
             icon=qta.icon("fa5s.paint-brush", color=icon_color),
@@ -273,35 +274,35 @@ class ControlsPanel(QWidget):
             (
                 "setup",
                 "fa5s.cogs",
-                "Setup — Calibration, Demosaic, Normalization, Roll Analysis, Presets",
+                tr("Setup — Calibration, Demosaic, Normalization, Roll Analysis, Presets"),
                 [self.sensor_section, self.demosaic_section, self.process_section, self.roll_section, self.presets_section],
                 ["sensor_section", "demosaic_section", "process_section", "roll_section"],
             ),
             (
                 "geometry",
                 "fa5s.crop",
-                "Geometry & Flat Field",
+                tr("Geometry & Flat Field"),
                 [self.geometry_section, self.flatfield_section],
                 ["geometry_section", "flatfield_section"],
             ),
             (
                 "tone",
                 "fa5s.sun",
-                "Exposure — Filtration, Tone, Dodge & Burn",
+                tr("Exposure — Filtration, Tone, Dodge & Burn"),
                 [self.color_section, self.tone_section, self.local_section],
                 ["color_section", "tone_section", "local_section"],
             ),
             (
                 "color",
                 "fa5s.flask",
-                "Lab & Toning",
+                tr("Lab & Toning"),
                 [self.lab_section, self.altproc_section, self.toning_section],
                 ["lab_section", "altproc_section", "toning_section"],
             ),
             (
                 "finish",
                 "fa5s.brush",
-                "Finish — Retouch, Finishing",
+                tr("Finish — Retouch, Finishing"),
                 [self.retouch_section, self.finish_section],
                 ["retouch_section", "finish_section"],
             ),

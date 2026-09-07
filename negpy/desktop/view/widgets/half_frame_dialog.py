@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (
 
 from negpy.desktop.view.styles.templates import pin_dialog_default
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 _HANDLE_TOL = 0.04
 _HANDLE_PX = 5
@@ -279,7 +280,7 @@ class _HalfFrameLabel(QLabel):
         else:
             painter.fillRect(self.rect(), QColor("#0D0D0F"))
             painter.setPen(QColor(THEME.text_muted))
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "No preview")
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("No preview"))
         painter.end()
 
 
@@ -299,7 +300,7 @@ class HalfFrameDialog(QDialog):
         parent=None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Half Frame — split & crop")
+        self.setWindowTitle(tr("Half Frame — split & crop"))
         self.setModal(True)
         self.resize(720, 560)
 
@@ -311,14 +312,17 @@ class HalfFrameDialog(QDialog):
         layout.addWidget(self._label, 1)
 
         hint = QLabel(
-            "Drag the green rectangle to crop. Drag the orange line to set the split. Use the slider to thicken the cut band (the physical black separator)."
+            tr(
+                "Drag the green rectangle to crop. Drag the orange line to set the split. "
+                "Use the slider to thicken the cut band (the physical black separator)."
+            )
         )
         hint.setWordWrap(True)
         hint.setStyleSheet(f"color: {THEME.text_hint};")
         layout.addWidget(hint)
 
         gutter_row = QHBoxLayout()
-        gutter_row.addWidget(QLabel("Cut thickness"))
+        gutter_row.addWidget(QLabel(tr("Cut thickness")))
         self._gutter_slider = QSlider(Qt.Orientation.Horizontal)
         self._gutter_slider.setRange(0, 100)
         self._gutter_slider.setValue(int((initial_gutter or 0.0) * 1000))
@@ -330,18 +334,18 @@ class HalfFrameDialog(QDialog):
 
         btn_row = QHBoxLayout()
         btn_row.addStretch()
-        self._auto_btn = QPushButton("Auto-detect")
+        self._auto_btn = QPushButton(tr("Auto-detect"))
         self._auto_btn.setIcon(qta.icon("fa5s.magic", color=THEME.text_primary))
         self._auto_btn.clicked.connect(self._on_auto)
         btn_row.addWidget(self._auto_btn)
-        self._reset_btn = QPushButton("Reset")
+        self._reset_btn = QPushButton(tr("Reset"))
         self._reset_btn.setIcon(qta.icon("fa5s.undo", color=THEME.text_primary))
         self._reset_btn.clicked.connect(self._on_reset)
         btn_row.addWidget(self._reset_btn)
-        self._cancel_btn = QPushButton("Cancel")
+        self._cancel_btn = QPushButton(tr("Cancel"))
         self._cancel_btn.clicked.connect(self.reject)
         btn_row.addWidget(self._cancel_btn)
-        self._ok_btn = QPushButton("Apply")
+        self._ok_btn = QPushButton(tr("Apply"))
         self._ok_btn.setIcon(qta.icon("fa5s.check", color=THEME.text_primary))
         self._ok_btn.clicked.connect(self.accept)
         btn_row.addWidget(self._ok_btn)

@@ -18,6 +18,7 @@ import os
 from typing import Any, Callable, Iterator, Optional
 
 from negpy.infrastructure.loaders.constants import SUPPORTED_RAW_EXTENSIONS, is_ir_sidecar_path
+from negpy.kernel.system.i18n import tr
 from negpy.services.assets.search import Term, facts_for, match
 
 
@@ -48,10 +49,10 @@ def folder_counts(path: str) -> tuple[int, int]:
 def summarize_counts(images: int, subfolders: int) -> str:
     parts = []
     if images:
-        parts.append(f"{images} photo{'s' if images != 1 else ''}")
+        parts.append(tr("{n} photo").format(n=images) if images == 1 else tr("{n} photos").format(n=images))
     if subfolders:
-        parts.append(f"{subfolders} folder{'s' if subfolders != 1 else ''}")
-    return " · ".join(parts) or "empty"
+        parts.append(tr("{n} folder").format(n=subfolders) if subfolders == 1 else tr("{n} folders").format(n=subfolders))
+    return " · ".join(parts) or tr("empty")
 
 
 def iter_library_files(roots: list[str]) -> Iterator[dict[str, Any]]:

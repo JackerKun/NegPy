@@ -6,6 +6,7 @@ from negpy.features.metadata.models import (
     DESCRIPTION_FIELD_ORDER,
     normalize_description_fields,
 )
+from negpy.kernel.system.i18n import tr
 
 
 class DescriptionFieldsDialog(QDialog):
@@ -13,16 +14,16 @@ class DescriptionFieldsDialog(QDialog):
 
     def __init__(self, selected: object, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Description fields")
+        self.setWindowTitle(tr("Description fields"))
         self.setMinimumWidth(320)
 
         root = QVBoxLayout(self)
-        root.addWidget(hint_label("Checked fields are joined with • into the export ImageDescription. Empty values are skipped."))
+        root.addWidget(hint_label(tr("Checked fields are joined with • into the export ImageDescription. Empty values are skipped.")))
 
         enabled = set(normalize_description_fields(selected))
         self._checks: dict[str, QCheckBox] = {}
         for key in DESCRIPTION_FIELD_ORDER:
-            box = QCheckBox(DESCRIPTION_FIELD_LABELS[key])
+            box = QCheckBox(tr(DESCRIPTION_FIELD_LABELS[key]))
             box.setChecked(key in enabled)
             self._checks[key] = box
             root.addWidget(box)

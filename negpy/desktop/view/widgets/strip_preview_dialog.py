@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from negpy.kernel.system.text import count_of, plural
+from negpy.kernel.system.i18n import tr
 from negpy.desktop.converters import ImageConverter
 from negpy.desktop.view.styles.templates import StatusStrip, pin_dialog_default
 from negpy.desktop.view.styles.theme import THEME
@@ -36,6 +36,8 @@ from negpy.infrastructure.scanners.params import clamp_frame_offset_mm
 from negpy.infrastructure.scanners.roll import effective_pitch_mm
 
 _GUIDE_KEY = "scan_strip"  # the <!-- panel: --> marker its ⓘ reads out of the user guide
+# Prefixes of the offset notices set in _refresh_offset_indicators; the translations
+# of those messages must keep starting with the translation of these.
 _CLAMP_NOTICE = "Offset held at the frame pitch"
 _CUT_NOTICE = "Offset cuts into the frame"
 # 135 full frame. Delivery ends one pitch past the frame start, so an offset beyond
@@ -79,19 +81,6 @@ def _display_to_scan_rect(rect):
     sx1, sx2 = _order(1 - dy1, 1 - dy2)
     sy1, sy2 = _order(dx1, dx2)
     return (_clamp01(sx1), _clamp01(sy1), _clamp01(sx2), _clamp01(sy2))
-
-
-# One line of orientation. Offset and Drift explain themselves on their own sliders, where
-# the hand already is, and the ⓘ carries the rest.
-_FEEDER_HELP = "Preview a frame, drag on it to crop, and tick the frames to scan."
-_DISCOVERY_HELP = "Detect the frames, untick what you do not want, drag on a tile to crop it."
-
-_OFFSET_TIP = (
-    "Slides every frame along the film to clear the inter-frame gap. Frames shift left as it "
-    "grows; the shaded band is film past the frame boundary the transport cannot deliver, so "
-    "offset past the gap costs frame tail."
-)
-_DRIFT_TIP = "Adds progressively more (or less) offset per frame position, for a strip whose gaps creep. Re-preview to refresh the pixels."
 
 
 class _ResetSlider(QSlider):
@@ -152,7 +141,7 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         self._scan_now = False  # set when the user chooses "Scan" over "Use"
         initial_windows = initial_windows or {}
         initial_selected = tuple(initial_selected or ())
-        self.setWindowTitle("Preview strip — set a window per frame")
+        self.setWindowTitle(tr("Preview strip — set a window per frame"))
         self.setModal(True)
         tile_w, tile_h = self._tile_size()
         cols = min(self._capacity or _TILES_PER_ROW, _TILES_PER_ROW)
@@ -162,17 +151,23 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         layout = QVBoxLayout(self)
 
         help_row = QHBoxLayout()
-        self.help_lbl = QLabel(_DISCOVERY_HELP if self._discovers else _FEEDER_HELP)
+        # One line of orientation. Offset and Drift explain themselves on their own sliders,
+        # where the hand already is, and the ⓘ carries the rest.
+        self.help_lbl = QLabel(
+            tr("Detect the frames, untick what you do not want, drag on a tile to crop it.")
+            if self._discovers
+            else tr("Preview a frame, drag on it to crop, and tick the frames to scan.")
+        )
         self.help_lbl.setWordWrap(True)
         self.help_lbl.setStyleSheet(f"color: {THEME.text_secondary}; font-size: {THEME.font_size_small}px;")
         help_row.addWidget(self.help_lbl)
         help_row.addStretch()
         self.help_btn = QPushButton(qta.icon("fa5s.info-circle", color=THEME.text_muted), "")
-        self.help_btn.setToolTip("Offset, Drift and cropping, in full")
+        self.help_btn.setToolTip(tr("Offset, Drift and cropping, in full"))
         self.help_btn.setFlat(True)
         self.help_btn.setFixedSize(24, 22)
         self.help_btn.setVisible(has_guide(_GUIDE_KEY))
-        self.help_btn.clicked.connect(lambda: SectionHelpDialog(_GUIDE_KEY, "Strip preview", self).exec())
+        self.help_btn.clicked.connect(lambda: SectionHelpDialog(_GUIDE_KEY, tr("Strip preview"), self).exec())
         help_row.addWidget(self.help_btn)
         layout.addLayout(help_row)
 
@@ -193,7 +188,14 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         # Not floored at 0: a measured strip's saved offset may be negative, and the range
         # clamps it either way.
         self.offset_slider.setValue(int(round(float(initial_offset) * 10)))
-        self.offset_slider.setToolTip(_OFFSET_TIP if self._discovers else f"{_OFFSET_TIP} This transport cannot back up.")
+        offset_tip = tr(
+            "Slides every frame along the film to clear the inter-frame gap. Frames shift left as it "
+            "grows; the shaded band is film past the frame boundary the transport cannot deliver, so "
+            "offset past the gap costs frame tail."
+        )
+        if not self._discovers:
+            offset_tip += tr(" This transport cannot back up.")
+        self.offset_slider.setToolTip(offset_tip)
         self.offset_label = QLabel()
 
         self.drift_slider = _ResetSlider()
@@ -202,12 +204,21 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         self.drift_slider.setPageStep(10)
         self.drift_slider.setMinimumWidth(160)
         self.drift_slider.setValue(int(round(float(initial_offset_modifier) * 100)))
-        self.drift_slider.setToolTip(_DRIFT_TIP)
+        self.drift_slider.setToolTip(
+            tr(
+                "Adds progressively more (or less) offset per frame position, for a strip whose gaps "
+                "creep. Re-preview to refresh the pixels."
+            )
+        )
         self.drift_label = QLabel()
 
         # Name left, reading right, groove underneath — the panel sliders' shape. Beside the
         # groove the reading either clips or steals the width it is measuring.
-        for name, slider, value in (("Offset", self.offset_slider, self.offset_label), ("Drift", self.drift_slider, self.drift_label)):
+        sliders = (
+            (tr("Offset"), self.offset_slider, self.offset_label),
+            (tr("Drift"), self.drift_slider, self.drift_label),
+        )
+        for name, slider, value in sliders:
             block = QVBoxLayout()
             block.setSpacing(0)
             head = QHBoxLayout()
@@ -221,17 +232,17 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
             top.addLayout(block, 1)
 
         # A measured strip previews out of its own pass, whose resolution nothing chooses.
-        self.preview_dpi_label = QLabel("Preview DPI")
+        self.preview_dpi_label = QLabel(tr("Preview DPI"))
         self.preview_dpi_combo = QComboBox()
         for dpi in sorted(self._caps.supported_dpi) or [_PREVIEW_FALLBACK_DPI]:
             self.preview_dpi_combo.addItem(str(dpi), dpi)
         self.preview_dpi_combo.setCurrentIndex(0)  # lowest: fastest, framing only
-        self.preview_dpi_combo.setToolTip("Resolution used for the preview scans")
+        self.preview_dpi_combo.setToolTip(tr("Resolution used for the preview scans"))
         self.preview_dpi_label.setVisible(not self._discovers)
         self.preview_dpi_combo.setVisible(not self._discovers)
         top.addWidget(self.preview_dpi_label)
         top.addWidget(self.preview_dpi_combo)
-        label = " Detect frames" if self._discovers else " Preview all"
+        label = tr(" Detect frames") if self._discovers else tr(" Preview all")
         self.preview_all_btn = QPushButton(qta.icon("fa5s.eye", color=THEME.text_primary), label)
         self.preview_all_btn.clicked.connect(self._on_preview_all)
         top.addWidget(self.preview_all_btn)
@@ -248,7 +259,9 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         self._tiles: dict[int, _Tile] = {}
         self._tiles_wired = False
         self._strip = strip
-        self._empty_hint = QLabel("Press Detect frames to measure the strip" if self._discovers else "Preview a frame to set its window")
+        self._empty_hint = QLabel(
+            tr("Press Detect frames to measure the strip") if self._discovers else tr("Preview a frame to set its window")
+        )
         self._empty_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._empty_hint.setStyleSheet(f"color: {THEME.text_hint}; font-size: {THEME.font_size_base}px; padding: 48px;")
         strip.addWidget(self._empty_hint, 0, 0, 1, _TILES_PER_ROW)
@@ -267,36 +280,36 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         layout.addWidget(self.status_strip)
 
         btns = QHBoxLayout()
-        self.select_all_btn = QPushButton("All")
+        self.select_all_btn = QPushButton(tr("All"))
         self.select_all_btn.setFixedWidth(48)
-        self.select_all_btn.setToolTip("Scan every frame on the strip")
+        self.select_all_btn.setToolTip(tr("Scan every frame on the strip"))
         self.select_all_btn.clicked.connect(lambda: self._set_all_checked(True))
-        self.select_none_btn = QPushButton("None")
+        self.select_none_btn = QPushButton(tr("None"))
         self.select_none_btn.setFixedWidth(56)
-        self.select_none_btn.setToolTip("Untick every frame")
+        self.select_none_btn.setToolTip(tr("Untick every frame"))
         self.select_none_btn.clicked.connect(lambda: self._set_all_checked(False))
         self.selection_label = QLabel()
         self.selection_label.setStyleSheet(f"color: {THEME.text_secondary}; font-size: {THEME.font_size_small}px;")
-        btns.addWidget(QLabel("Frames to scan"))
+        btns.addWidget(QLabel(tr("Frames to scan")))
         btns.addWidget(self.select_all_btn)
         btns.addWidget(self.select_none_btn)
         btns.addWidget(self.selection_label)
         btns.addSpacing(16)
         # Not "Clear all": it clears crops, and it sits next to the selection buttons.
-        self.clear_btn = QPushButton("Clear crops")
-        self.clear_btn.setToolTip("Remove every window (scan full frames)")
+        self.clear_btn = QPushButton(tr("Clear crops"))
+        self.clear_btn.setToolTip(tr("Remove every window (scan full frames)"))
         self.clear_btn.clicked.connect(self._on_clear_all)
         btns.addWidget(self.clear_btn)
         btns.addStretch()
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(tr("Cancel"))
         self.cancel_btn.clicked.connect(self._on_cancel_clicked)
         btns.addWidget(self.cancel_btn)
-        self.ok_btn = QPushButton("Apply framing")
-        self.ok_btn.setToolTip("Keep this framing and selection, and return to the Scan panel")
+        self.ok_btn = QPushButton(tr("Apply framing"))
+        self.ok_btn.setToolTip(tr("Keep this framing and selection, and return to the Scan panel"))
         self.ok_btn.clicked.connect(self.accept)
         btns.addWidget(self.ok_btn)
-        self.scan_btn = QPushButton(qta.icon("fa5s.play", color=THEME.text_primary), " Scan")
-        self.scan_btn.setToolTip("Scan the ticked frames now with the current settings")
+        self.scan_btn = QPushButton(qta.icon("fa5s.play", color=THEME.text_primary), tr(" Scan"))
+        self.scan_btn.setToolTip(tr("Scan the ticked frames now with the current settings"))
         self.scan_btn.setProperty("primary", True)
         self.scan_btn.clicked.connect(self._on_scan_clicked)
         pin_dialog_default(None, self.clear_btn, self.cancel_btn, self.ok_btn, self.scan_btn)
@@ -357,10 +370,10 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         oh.setSpacing(6)
         checkbox = QCheckBox(str(frame))
         checkbox.setChecked(checked)
-        checkbox.setToolTip(f"Scan frame {frame}")
+        checkbox.setToolTip(tr("Scan frame {frame}").format(frame=frame))
         oh.addWidget(checkbox)
         preview_btn = QPushButton(qta.icon("fa5s.eye", color=THEME.text_secondary), "")
-        preview_btn.setToolTip(f"Preview frame {frame}")
+        preview_btn.setToolTip(tr("Preview frame {frame}").format(frame=frame))
         preview_btn.setFlat(True)
         preview_btn.setFixedSize(24, 20)
         preview_btn.clicked.connect(lambda _checked=False, f=frame: self._on_preview_one(f))
@@ -432,12 +445,23 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         ready = bool(picked) and not self._previewing
         self.ok_btn.setEnabled(ready)
         self.scan_btn.setEnabled(ready)
-        self.scan_btn.setText(f" Scan {count_of(picked, 'frame')}" if picked else " Scan")
+        if picked == 1:
+            self.scan_btn.setText(tr(" Scan 1 frame"))
+        elif picked:
+            self.scan_btn.setText(tr(" Scan {count} frames").format(count=picked))
+        else:
+            self.scan_btn.setText(tr(" Scan"))
         # Enter follows the intent: once frames are measured and ticked, that is scanning them,
         # not walking back to the panel.
         self.scan_btn.setDefault(ready)
         self.ok_btn.setDefault(not ready)
-        self.selection_label.setText(f"{picked} of {count_of(len(self._tiles), 'frame')}" if self._tiles else "none yet")
+        total = len(self._tiles)
+        if not total:
+            self.selection_label.setText(tr("none yet"))
+        elif total == 1:
+            self.selection_label.setText(tr("{picked} of 1 frame").format(picked=picked))
+        else:
+            self.selection_label.setText(tr("{picked} of {total} frames").format(picked=picked, total=total))
 
     def _set_all_checked(self, checked: bool) -> None:
         for tile in self._tiles.values():
@@ -452,9 +476,9 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         for tile in self._tiles.values():
             tile.preview_btn.setEnabled(not busy)
         # Committing mid-pass would hand the batch a unit the preview still holds.
-        self.cancel_btn.setText("Stop preview" if busy else "Cancel")
+        self.cancel_btn.setText(tr("Stop preview") if busy else tr("Cancel"))
         if busy:
-            self.status_strip.start_progress("Previewing… %p%")
+            self.status_strip.start_progress(tr("Previewing… %p%"))
         else:
             self.status_strip.stop_progress()
         self._update_ok_enabled()
@@ -519,15 +543,32 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
                 tile.label.set_coverage(self._tile_coverage(tile))
         if clamped:
             frames = ", ".join(str(f) for f in clamped)
-            self.status_strip.set_message(f"{_CLAMP_NOTICE} on {plural(len(clamped), 'frame')} {frames} — reduce Offset or Drift.")
+            if len(clamped) == 1:
+                self.status_strip.set_message(
+                    tr("Offset held at the frame pitch on frame {frames} — reduce Offset or Drift.").format(frames=frames)
+                )
+            else:
+                self.status_strip.set_message(
+                    tr("Offset held at the frame pitch on frames {frames} — reduce Offset or Drift.").format(frames=frames)
+                )
         elif cut:
             frames = ", ".join(str(f) for f, _ in cut)
-            worst = max(loss for _, loss in cut)
-            self.status_strip.set_message(
-                f"{_CUT_NOTICE} on {plural(len(cut), 'frame')} {frames} — up to {worst:.1f} mm of picture lost off the "
-                f"frame tail; reduce Offset, or re-feed the strip for a better registration."
-            )
-        elif self.status_strip.message().startswith((_CLAMP_NOTICE, _CUT_NOTICE)):
+            worst = f"{max(loss for _, loss in cut):.1f}"
+            if len(cut) == 1:
+                self.status_strip.set_message(
+                    tr(
+                        "Offset cuts into the frame on frame {frames} — up to {lost} mm of picture lost off the "
+                        "frame tail; reduce Offset, or re-feed the strip for a better registration."
+                    ).format(frames=frames, lost=worst)
+                )
+            else:
+                self.status_strip.set_message(
+                    tr(
+                        "Offset cuts into the frame on frames {frames} — up to {lost} mm of picture lost off the "
+                        "frame tail; reduce Offset, or re-feed the strip for a better registration."
+                    ).format(frames=frames, lost=worst)
+                )
+        elif self.status_strip.message().startswith((tr(_CLAMP_NOTICE), tr(_CUT_NOTICE))):
             self.status_strip.set_message("")
 
     # ── preview flow (single-flight chain) ────────────────────────────
@@ -561,15 +602,17 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         try:
             self._controller.start_roll_preview(req)
         except Exception as e:
-            self.status_strip.set_message(f"Scanner busy — {e}")
+            self.status_strip.set_message(tr("Scanner busy — {error}").format(error=e))
             return
         self._previewing = True
         self._set_previewing(True)
         if self._discovers and len(slots) > 1:
             # The slot count asked for is a roll's worth, not what the strip holds.
-            self.status_strip.set_message("Measuring the strip…")
+            self.status_strip.set_message(tr("Measuring the strip…"))
+        elif len(slots) == 1:
+            self.status_strip.set_message(tr("Previewing frame {frame}…").format(frame=slots[0]))
         else:
-            self.status_strip.set_message(f"Previewing {'frame ' + str(slots[0]) if len(slots) == 1 else f'{len(slots)} frames'}…")
+            self.status_strip.set_message(tr("Previewing {count} frames…").format(count=len(slots)))
 
     @pyqtSlot(object)
     def _on_preview_ready(self, preview) -> None:
@@ -582,7 +625,7 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
             # One frame glitched, and the backend already retried it. The rest of the strip is still
             # coming.
             self._failed_frames.append(preview.slot)
-            self.status_strip.set_message(f"Frame {preview.slot} failed — continuing…")
+            self.status_strip.set_message(tr("Frame {frame} failed — continuing…").format(frame=preview.slot))
             return
         try:
             positive = preview_positive(preview.rgb, self._film_type)
@@ -590,7 +633,7 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
             if self._rotation:
                 pixmap = pixmap.transformed(QTransform().rotate(self._rotation))
         except Exception as e:
-            self.status_strip.set_message(f"Could not display frame {preview.slot}: {e}")
+            self.status_strip.set_message(tr("Could not display frame {frame}: {error}").format(frame=preview.slot, error=e))
             return
         tile.previewed_offset = preview.offset
         # Anchor the tile to the next scan: a current raster sits flush left and ends at the
@@ -605,15 +648,19 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
         self._set_previewing(False)
         if self._discovers and not self._failed_frames:
             found = len(self._tiles)
-            self.status_strip.set_message(
-                f"{count_of(found, 'frame')} detected — check the framing before scanning."
-                if found
-                else "No frames were detected on the loaded film."
-            )
+            if found == 1:
+                self.status_strip.set_message(tr("1 frame detected — check the framing before scanning."))
+            elif found:
+                self.status_strip.set_message(tr("{count} frames detected — check the framing before scanning.").format(count=found))
+            else:
+                self.status_strip.set_message(tr("No frames were detected on the loaded film."))
             return
         if self._failed_frames:
             failed = ", ".join(str(f) for f in self._failed_frames)
-            self.status_strip.set_message(f"Preview done. Failed {plural(len(self._failed_frames), 'frame')}: {failed}")
+            if len(self._failed_frames) == 1:
+                self.status_strip.set_message(tr("Preview done. Failed frame: {failed}").format(failed=failed))
+            else:
+                self.status_strip.set_message(tr("Preview done. Failed frames: {failed}").format(failed=failed))
         else:
             self.status_strip.set_message("")
 
@@ -623,7 +670,7 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
             return
         self._previewing = False
         self._set_previewing(False)
-        self.status_strip.set_message(f"Preview failed: {msg}")
+        self.status_strip.set_message(tr("Preview failed: {error}").format(error=msg))
 
     @pyqtSlot()
     def _on_cancelled(self) -> None:
@@ -631,4 +678,4 @@ class StripPreviewDialog(RollPreviewSignalsMixin, QDialog):
             return
         self._previewing = False
         self._set_previewing(False)
-        self.status_strip.set_message("Preview cancelled.")
+        self.status_strip.set_message(tr("Preview cancelled."))

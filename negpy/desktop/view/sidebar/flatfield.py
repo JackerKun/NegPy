@@ -13,6 +13,7 @@ from negpy.desktop.view.confirm import confirm_delete_named
 from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import field_label, hint_label
 from negpy.desktop.view.widgets.file_dialogs import last_open_folder, pick_start_dir
+from negpy.kernel.system.i18n import tr
 
 _NONE_LABEL = "— None —"
 _FILE_FILTER = "Reference images (*.dng *.tif *.tiff *.cr2 *.cr3 *.nef *.arw *.raf *.rw2 *.jpg *.jpeg *.png);;All files (*)"
@@ -26,25 +27,25 @@ class FlatFieldSidebar(BaseSidebar):
 
     def _init_ui(self) -> None:
         row = QHBoxLayout()
-        row.addWidget(field_label("Profile"))
+        row.addWidget(field_label(tr("Profile")))
         self.profile_combo = QComboBox()
-        self.profile_combo.setToolTip("Saved flat-field reference profiles (scan of the bare light source)")
+        self.profile_combo.setToolTip(tr("Saved flat-field reference profiles (scan of the bare light source)"))
         row.addWidget(self.profile_combo, 1)
 
-        self.add_btn = self._icon_action("fa5s.plus", "Pick a reference image and save it as a named profile")
-        self.delete_btn = self._icon_action("fa5s.trash", "Remove the selected profile")
+        self.add_btn = self._icon_action("fa5s.plus", tr("Pick a reference image and save it as a named profile"))
+        self.delete_btn = self._icon_action("fa5s.trash", tr("Remove the selected profile"))
         row.addWidget(self.add_btn)
         row.addWidget(self.delete_btn)
         self.layout.addLayout(row)
 
-        self.hint = hint_label("Add a scan of the bare light source to enable.")
+        self.hint = hint_label(tr("Add a scan of the bare light source to enable."))
         self.layout.addWidget(self.hint)
 
         self.enable_btn = self._small_toggle(
             "fa5s.lightbulb",
-            "Apply Flat Field",
+            tr("Apply Flat Field"),
             False,
-            "Apply the active flat-field reference to this image",
+            tr("Apply the active flat-field reference to this image"),
         )
         self.layout.addWidget(self.enable_btn)
 
@@ -66,7 +67,8 @@ class FlatFieldSidebar(BaseSidebar):
         prev = self.profile_combo.signalsBlocked()
         self.profile_combo.blockSignals(True)
         self.profile_combo.clear()
-        self.profile_combo.addItem(_NONE_LABEL, "")
+        # Module-level constant: translated at the point of use.
+        self.profile_combo.addItem(tr(_NONE_LABEL), "")
         for profile_id, name in FlatFieldProfiles.list_profiles():
             self.profile_combo.addItem(name, profile_id)
         self.profile_combo.blockSignals(prev)
@@ -81,11 +83,11 @@ class FlatFieldSidebar(BaseSidebar):
 
     def _on_add(self) -> None:
         start = pick_start_dir(last_open_folder(self.controller.session.repo))
-        path, _ = QFileDialog.getOpenFileName(self, "Select flat-field reference", start, _FILE_FILTER)
+        path, _ = QFileDialog.getOpenFileName(self, tr("Select flat-field reference"), start, tr(_FILE_FILTER))
         if not path:
             return
         default_name = os.path.splitext(os.path.basename(path))[0]
-        name, ok = QInputDialog.getText(self, "Save Flat-Field Profile", "Profile name:", text=default_name)
+        name, ok = QInputDialog.getText(self, tr("Save Flat-Field Profile"), tr("Profile name:"), text=default_name)
         if ok and name:
             # save_flatfield_profile decodes the reference RAW to bake the gain, a brief blocking beat
             # on the GUI thread, so show a wait cursor.
@@ -101,9 +103,9 @@ class FlatFieldSidebar(BaseSidebar):
         profile_id = self.profile_combo.currentData()
         if profile_id and confirm_delete_named(
             self,
-            "Flat-Field Profile",
+            tr("Flat-Field Profile"),
             self.profile_combo.currentText(),
-            informative="Every frame using it loses its correction; the baked gain map cannot be recovered.",
+            informative=tr("Every frame using it loses its correction; the baked gain map cannot be recovered."),
         ):
             self.controller.delete_flatfield_profile(profile_id)
             self._refresh_profiles()

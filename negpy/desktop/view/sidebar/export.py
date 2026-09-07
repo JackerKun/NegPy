@@ -43,6 +43,7 @@ from negpy.desktop.view.widgets.export_settings_form import ExportSettingsForm, 
 from negpy.desktop.view.widgets.split_button import make_split_button
 from negpy.domain.models import PROOF_INTENT_LABELS, ColorSpace, ProofIntent, preset_display_name
 from negpy.infrastructure.display.color_spaces import ColorSpaceRegistry
+from negpy.kernel.system.i18n import tr
 from negpy.services.export.contact_sheet_templates import ContactSheetLayout, ContactSheetTemplates
 
 # The built-in baseline in the proof-preset combo. Empty rather than None so a saved preset
@@ -159,12 +160,12 @@ class ExportSidebar(BaseSidebar):
         self._presets_inner.setSpacing(2)
         content_layout.addWidget(self._presets_container)
 
-        self._no_presets_label = hint_label("No presets — click Manage to add some.")
+        self._no_presets_label = hint_label(tr("No presets — click Manage to add some."))
         self._presets_inner.addWidget(self._no_presets_label)
         self._preset_checkboxes: list[QCheckBox] = []
 
         preset_btn_row = QHBoxLayout()
-        self.manage_presets_btn = QPushButton(" Manage")
+        self.manage_presets_btn = QPushButton(tr(" Manage"))
         self.manage_presets_btn.setObjectName("manage_presets_btn")
         self.manage_presets_btn.setIcon(qta.icon("fa5s.sliders-h", color=THEME.text_primary))
         self.manage_presets_btn.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
@@ -172,9 +173,9 @@ class ExportSidebar(BaseSidebar):
         self._export_presets_menu = preset_menu
 
         self.export_presets_group, self.export_presets_btn, self.export_presets_menu_btn = make_split_button(
-            " Export Presets", "fa5s.layer-group", preset_menu, primary=True
+            tr(" Export Presets"), "fa5s.layer-group", preset_menu, primary=True
         )
-        self.export_presets_menu_btn.setToolTip("Choose what the Export Presets button does")
+        self.export_presets_menu_btn.setToolTip(tr("Choose what the Export Presets button does"))
 
         saved = self.controller.session.repo.get_global_setting("preset_export_scope", "current")
         self._set_preset_scope(saved if saved in self._PRESET_SCOPES else "current", persist=False)
@@ -184,7 +185,7 @@ class ExportSidebar(BaseSidebar):
 
         repo = self.controller.session.repo
         expanded = bool(repo.get_global_setting("section_expanded_export_presets", default=False))
-        self._presets_section = CollapsibleSection("Presets", expanded=expanded, icon=qta.icon("fa5s.layer-group", color="#aaa"))
+        self._presets_section = CollapsibleSection(tr("Presets"), expanded=expanded, icon=qta.icon("fa5s.layer-group", color="#aaa"))
         self._presets_section.set_content(content)
         self._presets_section.expanded_changed.connect(lambda checked: repo.save_global_setting("section_expanded_export_presets", checked))
         self.layout.addWidget(self._presets_section)
@@ -200,22 +201,26 @@ class ExportSidebar(BaseSidebar):
 
         self.printing_notes_preview_btn = self._tool_toggle(
             "fa5s.eye",
-            "Preview",
-            "Show the marked-up work print over the frame: burns hatched, dodges open, each mask "
-            "labelled with its value in stops, plus a card with the print recipe. Display only.",
+            tr("Preview"),
+            tr(
+                "Show the marked-up work print over the frame: burns hatched, dodges open, each mask "
+                "labelled with its value in stops, plus a card with the print recipe. Display only."
+            ),
         )
         self.printing_notes_preview_btn.setChecked(self.state.printing_notes)
         self.printing_notes_preview_btn.setFixedHeight(default_button_height())
 
-        self.printing_notes_btn = QPushButton(" Export")
+        self.printing_notes_btn = QPushButton(tr(" Export"))
         self.printing_notes_btn.setObjectName("printing_notes_btn")
         self.printing_notes_btn.setProperty("primary", True)
         self.printing_notes_btn.setFixedHeight(default_button_height())
         self.printing_notes_btn.setIcon(qta.icon("mdi.playlist-edit", color="white"))
         self.printing_notes_btn.setToolTip(
-            "Save this frame as a marked-up work print — the map plus the print recipe below it — as its "
-            "own JPEG in the export folder. The print itself is untouched. Resolution follows the "
-            "preview, so turn HQ on for a full-resolution sheet."
+            tr(
+                "Save this frame as a marked-up work print — the map plus the print recipe below it — as its "
+                "own JPEG in the export folder. The print itself is untouched. Resolution follows the "
+                "preview, so turn HQ on for a full-resolution sheet."
+            )
         )
 
         btn_row = QHBoxLayout()
@@ -226,9 +231,9 @@ class ExportSidebar(BaseSidebar):
         repo = self.controller.session.repo
         expanded = bool(repo.get_global_setting("section_expanded_printing_notes", default=False))
         self.printing_notes_section = CollapsibleSection(
-            "Printing Notes", expanded=expanded, icon=qta.icon("mdi.playlist-edit", color="#aaa")
+            tr("Printing Notes"), expanded=expanded, icon=qta.icon("mdi.playlist-edit", color="#aaa")
         )
-        self.printing_notes_section.setToolTip("The printer's record for this frame: dodge/burn map + print recipe.")
+        self.printing_notes_section.setToolTip(tr("The printer's record for this frame: dodge/burn map + print recipe."))
         self.printing_notes_section.set_content(content)
         self.printing_notes_section.expanded_changed.connect(
             lambda checked: repo.save_global_setting("section_expanded_printing_notes", checked)
@@ -253,27 +258,29 @@ class ExportSidebar(BaseSidebar):
         content_layout.setSpacing(6)
 
         template_row = QHBoxLayout()
-        template_label = field_label("Template")
+        template_label = field_label(tr("Template"))
         template_label.setFixedWidth(FIELD_LABEL_WIDTH)
         template_row.addWidget(template_label)
         self.cs_template_combo = QComboBox()
         constrain_combo(self.cs_template_combo)
         self.cs_template_combo.setToolTip(
-            "Layout preset from .toml files in NegPy/contact_sheets (see docs/CONTACT_SHEET_TEMPLATES.md). "
-            "Edits to the spinboxes below are saved to the active template."
+            tr(
+                "Layout preset from .toml files in NegPy/contact_sheets (see docs/CONTACT_SHEET_TEMPLATES.md). "
+                "Edits to the spinboxes below are saved to the active template."
+            )
         )
         template_row.addWidget(self.cs_template_combo)
         content_layout.addLayout(template_row)
 
         self.cs_delete_template_btn = QPushButton()
         self.cs_delete_template_btn.setIcon(qta.icon("fa5s.trash", color=THEME.text_primary))
-        self.cs_delete_template_btn.setToolTip("Delete the selected template (Default can't be deleted)")
+        self.cs_delete_template_btn.setToolTip(tr("Delete the selected template (Default can't be deleted)"))
         self.cs_delete_template_btn.setFixedWidth(ICON_BUTTON_WIDTH)
         template_row.addWidget(self.cs_delete_template_btn)
 
-        self.cs_save_template_btn = QPushButton(" Save as template")
+        self.cs_save_template_btn = QPushButton(tr(" Save as template"))
         self.cs_save_template_btn.setIcon(qta.icon("fa5s.save", color=THEME.text_primary))
-        self.cs_save_template_btn.setToolTip("Save the current layout as a new named template file")
+        self.cs_save_template_btn.setToolTip(tr("Save the current layout as a new named template file"))
         content_layout.addWidget(self.cs_save_template_btn)
 
         initial_layout = self._contact_sheet_layout_for_config(conf)
@@ -291,23 +298,23 @@ class ExportSidebar(BaseSidebar):
             content_layout.addLayout(row)
             return spin
 
-        self.cs_cell_px_input = _labeled_spinbox("Cell px", initial_layout.cell_px, 100, 4000)
-        self.cs_gap_input = _labeled_spinbox("Gap px", initial_layout.gap, 0, 200)
-        self.cs_margin_input = _labeled_spinbox("Margin px", initial_layout.margin, 0, 500)
-        self.cs_max_tiles_input = _labeled_spinbox("Max tiles", initial_layout.max_tiles, 1, 200)
+        self.cs_cell_px_input = _labeled_spinbox(tr("Cell px"), initial_layout.cell_px, 100, 4000)
+        self.cs_gap_input = _labeled_spinbox(tr("Gap px"), initial_layout.gap, 0, 200)
+        self.cs_margin_input = _labeled_spinbox(tr("Margin px"), initial_layout.margin, 0, 500)
+        self.cs_max_tiles_input = _labeled_spinbox(tr("Max tiles"), initial_layout.max_tiles, 1, 200)
 
-        self.cs_show_labels_checkbox = QCheckBox("Show filenames")
+        self.cs_show_labels_checkbox = QCheckBox(tr("Show filenames"))
         self.cs_show_labels_checkbox.setChecked(initial_layout.show_labels)
-        self.cs_show_labels_checkbox.setToolTip("Print each frame's original filename below its thumbnail")
+        self.cs_show_labels_checkbox.setToolTip(tr("Print each frame's original filename below its thumbnail"))
         self.cs_show_labels_checkbox.stateChanged.connect(self._on_contact_sheet_settings_changed)
         content_layout.addWidget(self.cs_show_labels_checkbox)
 
         colors_row = QHBoxLayout()
-        colors_label = field_label("Colors")
+        colors_label = field_label(tr("Colors"))
         colors_label.setFixedWidth(FIELD_LABEL_WIDTH)
         colors_row.addWidget(colors_label)
-        self.cs_colors_btn = QPushButton(" Choose…")
-        self.cs_colors_btn.setToolTip("Background and label colors")
+        self.cs_colors_btn = QPushButton(tr(" Choose…"))
+        self.cs_colors_btn.setToolTip(tr("Background and label colors"))
         self._update_cs_colors_btn_tooltip()
         self.cs_colors_btn.clicked.connect(self._on_cs_colors_clicked)
         colors_row.addWidget(self.cs_colors_btn, 1)
@@ -321,36 +328,36 @@ class ExportSidebar(BaseSidebar):
             self.cs_template_combo.setCurrentText(ContactSheetTemplates.DEFAULT_NAME)
 
         cs_path_row = QHBoxLayout()
-        cs_path_label = field_label("Path")
+        cs_path_label = field_label(tr("Path"))
         cs_path_label.setFixedWidth(FIELD_LABEL_WIDTH)
         cs_path_row.addWidget(cs_path_label)
         self.cs_output_path_edit = QLineEdit(conf.contact_sheet_output_path)
-        self.cs_output_path_edit.setPlaceholderText("Uses export destination")
+        self.cs_output_path_edit.setPlaceholderText(tr("Uses export destination"))
         self.cs_output_path_edit.setToolTip(
-            "Folder for contact sheet JPEGs. Leave empty to follow the export destination (same as source or absolute export path)."
+            tr("Folder for contact sheet JPEGs. Leave empty to follow the export destination (same as source or absolute export path).")
         )
         self.cs_output_path_edit.textChanged.connect(lambda _: self.update_timer.start())
         self.cs_output_path_browse_btn = QPushButton()
         self.cs_output_path_browse_btn.setIcon(qta.icon("fa5s.folder-open", color=THEME.text_primary))
         self.cs_output_path_browse_btn.setFixedWidth(ICON_BUTTON_WIDTH)
-        self.cs_output_path_browse_btn.setToolTip("Choose contact sheet output folder")
+        self.cs_output_path_browse_btn.setToolTip(tr("Choose contact sheet output folder"))
         self.cs_output_path_browse_btn.clicked.connect(self._browse_contact_sheet_output_path)
         cs_path_row.addWidget(self.cs_output_path_edit)
         cs_path_row.addWidget(self.cs_output_path_browse_btn)
         content_layout.addLayout(cs_path_row)
 
-        self.contact_sheet_btn = QPushButton(" Export contact sheet")
+        self.contact_sheet_btn = QPushButton(tr(" Export contact sheet"))
         self.contact_sheet_btn.setObjectName("contact_sheet_btn")
         self.contact_sheet_btn.setProperty("primary", True)
         self.contact_sheet_btn.setFixedHeight(default_button_height())
         self.contact_sheet_btn.setIcon(qta.icon("fa5s.th", color="white"))
-        self.contact_sheet_btn.setToolTip("Render all visible frames into a contact sheet")
+        self.contact_sheet_btn.setToolTip(tr("Render all visible frames into a contact sheet"))
         content_layout.addWidget(self.contact_sheet_btn)
 
         repo = self.controller.session.repo
         expanded = bool(repo.get_global_setting("section_expanded_contact_sheet", default=False))
-        self.contact_sheet_section = CollapsibleSection("Contact Sheet", expanded=expanded, icon=qta.icon("fa5s.th", color="#aaa"))
-        self.contact_sheet_section.setToolTip("Render a contact sheet of display previews. Independent of flat master export.")
+        self.contact_sheet_section = CollapsibleSection(tr("Contact Sheet"), expanded=expanded, icon=qta.icon("fa5s.th", color="#aaa"))
+        self.contact_sheet_section.setToolTip(tr("Render a contact sheet of display previews. Independent of flat master export."))
         self.contact_sheet_section.set_content(content)
         self.contact_sheet_section.expanded_changed.connect(
             lambda checked: repo.save_global_setting("section_expanded_contact_sheet", checked)
@@ -359,12 +366,14 @@ class ExportSidebar(BaseSidebar):
 
     def _browse_contact_sheet_output_path(self) -> None:
         start = self.cs_output_path_edit.text().strip() or self.state.config.export.export_path
-        path = QFileDialog.getExistingDirectory(self, "Select Contact Sheet Output Folder", start)
+        path = QFileDialog.getExistingDirectory(self, tr("Select Contact Sheet Output Folder"), start)
         if path:
             self.cs_output_path_edit.setText(path)
 
     def _update_cs_colors_btn_tooltip(self) -> None:
-        self.cs_colors_btn.setToolTip(f"Background {self._cs_background_color}, labels {self._cs_label_color}")
+        self.cs_colors_btn.setToolTip(
+            tr("Background {background}, labels {labels}").format(background=self._cs_background_color, labels=self._cs_label_color)
+        )
 
     def _on_cs_colors_clicked(self) -> None:
         try:
@@ -373,7 +382,7 @@ class ExportSidebar(BaseSidebar):
                 return
             bg, label = dlg.colors()
         except Exception as exc:
-            QMessageBox.critical(self, "Contact Sheet Colors", f"Could not open color picker:\n{exc}")
+            QMessageBox.critical(self, tr("Contact Sheet Colors"), tr("Could not open color picker:\n{error}").format(error=exc))
             return
         self._cs_background_color = bg
         self._cs_label_color = label
@@ -450,8 +459,8 @@ class ExportSidebar(BaseSidebar):
             except OSError as exc:
                 QMessageBox.critical(
                     self,
-                    "Contact Sheet Template",
-                    f'Could not update template "{template_name}":\n{exc}',
+                    tr("Contact Sheet Template"),
+                    tr('Could not update template "{name}":\n{error}').format(name=template_name, error=exc),
                 )
                 return
 
@@ -500,8 +509,8 @@ class ExportSidebar(BaseSidebar):
             return
         reply = QMessageBox.question(
             self,
-            "Delete Contact Sheet Template",
-            f'Delete template "{name}"?',
+            tr("Delete Contact Sheet Template"),
+            tr('Delete template "{name}"?').format(name=name),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Cancel,
         )
@@ -518,22 +527,22 @@ class ExportSidebar(BaseSidebar):
     def _on_save_contact_sheet_template(self) -> None:
         current = self.cs_template_combo.currentText()
         default_text = current if current != ContactSheetTemplates.DEFAULT_NAME else ""
-        name, ok = QInputDialog.getText(self, "Save Contact Sheet Template", "Template name:", text=default_text)
+        name, ok = QInputDialog.getText(self, tr("Save Contact Sheet Template"), tr("Template name:"), text=default_text)
         if not ok:
             return
         name = name.strip()
         if not name:
             return
         if name == ContactSheetTemplates.DEFAULT_NAME:
-            QMessageBox.warning(self, "Save Contact Sheet Template", '"Default" is reserved. Choose another name.')
+            QMessageBox.warning(self, tr("Save Contact Sheet Template"), tr('"Default" is reserved. Choose another name.'))
             return
 
         path = ContactSheetTemplates.path_for_name(name)
         if os.path.exists(path) or ContactSheetTemplates.template_exists(name):
             reply = QMessageBox.question(
                 self,
-                "Overwrite Template",
-                f'A template named "{name}" already exists. Replace it?',
+                tr("Overwrite Template"),
+                tr('A template named "{name}" already exists. Replace it?').format(name=name),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.Yes,
             )
@@ -544,7 +553,7 @@ class ExportSidebar(BaseSidebar):
         try:
             ContactSheetTemplates.save(name, layout)
         except OSError as exc:
-            QMessageBox.critical(self, "Save Contact Sheet Template", f"Could not write template:\n{exc}")
+            QMessageBox.critical(self, tr("Save Contact Sheet Template"), tr("Could not write template:\n{error}").format(error=exc))
             return
 
         self._refresh_contact_sheet_templates()
@@ -561,7 +570,7 @@ class ExportSidebar(BaseSidebar):
 
     def _add_flat_master_section(self) -> None:
         """Output-intent override: Print (default) or Flat digital intermediate."""
-        self.layout.addWidget(section_subheader("OUTPUT INTENT"))
+        self.layout.addWidget(section_subheader(tr("OUTPUT INTENT")))
 
         # Contain the whole intent block (toggle, format, peek/bake, hints) so it reads as one
         # unit. objectName-scoped, so the border does not cascade.
@@ -574,23 +583,27 @@ class ExportSidebar(BaseSidebar):
 
         intent_row = QHBoxLayout()
         intent_row.setSpacing(4)
-        self.intent_print_btn = QPushButton("Print")
-        self.intent_flat_btn = QPushButton("Flat")
-        self.intent_print_btn.setToolTip(wrap_tooltip("Export the print as you see it, with the full NegPy look applied."))
+        self.intent_print_btn = QPushButton(tr("Print"))
+        self.intent_flat_btn = QPushButton(tr("Flat"))
+        self.intent_print_btn.setToolTip(wrap_tooltip(tr("Export the print as you see it, with the full NegPy look applied.")))
         self.intent_flat_btn.setToolTip(
             wrap_tooltip(
-                "Export a flat, neutral, low-contrast master that keeps maximum tonal and color "
-                "information for editing in Lightroom, Darktable or Photoshop. Skips the creative "
-                "print look (auto density/grade, cast removal, lab effects, toning, vignette) and "
-                "writes a wide-gamut, high-bit-depth file. Your in-app preview is unaffected."
+                tr(
+                    "Export a flat, neutral, low-contrast master that keeps maximum tonal and color "
+                    "information for editing in Lightroom, Darktable or Photoshop. Skips the creative "
+                    "print look (auto density/grade, cast removal, lab effects, toning, vignette) and "
+                    "writes a wide-gamut, high-bit-depth file. Your in-app preview is unaffected."
+                )
             )
         )
-        self.intent_linear_btn = QPushButton("Linear")
+        self.intent_linear_btn = QPushButton(tr("Linear"))
         self.intent_linear_btn.setToolTip(
             wrap_tooltip(
-                "Export the raw decoded sensor data as an untagged 16-bit TIFF, before any "
-                "NegPy processing (no normalization, exposure, lab, toning, color management). "
-                "Supported for Pakon RAW and LinearRaw DNG (SilverFast/VueScan) files."
+                tr(
+                    "Export the raw decoded sensor data as an untagged 16-bit TIFF, before any "
+                    "NegPy processing (no normalization, exposure, lab, toning, color management). "
+                    "Supported for Pakon RAW and LinearRaw DNG (SilverFast/VueScan) files."
+                )
             )
         )
         for btn in (self.intent_print_btn, self.intent_flat_btn, self.intent_linear_btn):
@@ -614,44 +627,50 @@ class ExportSidebar(BaseSidebar):
         peek_bake_row = QHBoxLayout()
         peek_bake_row.setSpacing(4)
         self.flat_peek_btn = self._tool_toggle(
-            "fa5s.eye", "Preview Flat", "Temporarily show the flat master in the canvas (does not change your edit)"
+            "fa5s.eye", tr("Preview Flat"), tr("Temporarily show the flat master in the canvas (does not change your edit)")
         )
         self.flat_peek_btn.setChecked(self.state.flat_peek)
-        self.flat_bake_btn = QPushButton(" Roll Baseline")
+        self.flat_bake_btn = QPushButton(tr(" Roll Baseline"))
         self.flat_bake_btn.setIcon(qta.icon("fa5s.link", color=THEME.text_primary))
         self.flat_bake_btn.setToolTip(
-            "Measure every visible frame's exposure bounds and apply their shared average, so flat "
-            "masters render consistently across the roll."
+            tr(
+                "Measure every visible frame's exposure bounds and apply their shared average, so flat "
+                "masters render consistently across the roll."
+            )
         )
         peek_bake_row.addWidget(self.flat_peek_btn)
         peek_bake_row.addWidget(self.flat_bake_btn)
         box.addLayout(peek_bake_row)
 
         self.flat_hint_label = hint_label(
-            "Exports a flat 16-bit TIFF master in the selected color space at full resolution by default. "
-            "Choose Print or Pixels below to downscale."
+            tr(
+                "Exports a flat 16-bit TIFF master in the selected color space at full resolution by default. "
+                "Choose Print or Pixels below to downscale."
+            )
         )
         box.addWidget(self.flat_hint_label)
 
         # Roll-consistency nudge: a flat master is identical across frames only once the roll
         # shares one normalization baseline (locked bounds). Until then, per-frame auto bounds
         # make each frame's tones drift.
-        self.flat_roll_warning = hint_label("For consistent masters across a roll, lock one baseline for every frame.", kind="warning")
+        self.flat_roll_warning = hint_label(tr("For consistent masters across a roll, lock one baseline for every frame."), kind="warning")
         box.addWidget(self.flat_roll_warning)
 
         self.linear_hint_label = hint_label(
-            "Exports the loader's decoded buffer as an untagged 16-bit file. "
-            "No pipeline processing, no color management, no scaling. "
-            "Pakon RAW, LinearRaw DNG (SilverFast/VueScan), and camera RAW."
+            tr(
+                "Exports the loader's decoded buffer as an untagged 16-bit file. "
+                "No pipeline processing, no color management, no scaling. "
+                "Pakon RAW, LinearRaw DNG (SilverFast/VueScan), and camera RAW."
+            )
         )
         box.addWidget(self.linear_hint_label)
 
         fmt_row = QHBoxLayout()
         fmt_row.setContentsMargins(0, 0, 0, 0)
-        fmt_row.addWidget(field_label("Format"))
+        fmt_row.addWidget(field_label(tr("Format")))
         self.linear_format_combo = QComboBox()
-        self.linear_format_combo.addItem("TIFF", "tiff")
-        self.linear_format_combo.addItem("JPEG XL (lossless)", "jxl")
+        self.linear_format_combo.addItem(tr("TIFF"), "tiff")
+        self.linear_format_combo.addItem(tr("JPEG XL (lossless)"), "jxl")
         idx = self.linear_format_combo.findData(self.state.linear_format)
         if idx >= 0:
             self.linear_format_combo.setCurrentIndex(idx)
@@ -663,8 +682,8 @@ class ExportSidebar(BaseSidebar):
         box.addWidget(self.linear_format_row)
         self.linear_format_combo.currentIndexChanged.connect(self._on_linear_format_changed)
 
-        self.linear_jxl_effort_slider = CompactSlider("Effort", 1, 9, 7, step=1, precision=1)
-        self.linear_jxl_effort_slider.label.setToolTip("Encoder effort: higher = slower, smaller file")
+        self.linear_jxl_effort_slider = CompactSlider(tr("Effort"), 1, 9, 7, step=1, precision=1)
+        self.linear_jxl_effort_slider.label.setToolTip(tr("Encoder effort: higher = slower, smaller file"))
         self.linear_jxl_effort_slider.setValue(self.state.linear_jxl_effort)
         self.linear_jxl_effort_slider.setVisible(False)
         self.linear_jxl_effort_slider.valueChanged.connect(self._on_linear_jxl_effort_changed)
@@ -672,7 +691,7 @@ class ExportSidebar(BaseSidebar):
 
         expansion_row = QHBoxLayout()
         expansion_row.setContentsMargins(0, 0, 0, 0)
-        self.linear_expansion_label = field_label("Expansion")
+        self.linear_expansion_label = field_label(tr("Expansion"))
         expansion_row.addWidget(self.linear_expansion_label)
         self.linear_expansion_combo = QComboBox()
         self.linear_expansion_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -681,38 +700,38 @@ class ExportSidebar(BaseSidebar):
         self.linear_expansion_row.setLayout(expansion_row)
         self.linear_expansion_row.setVisible(False)
         box.addWidget(self.linear_expansion_row)
-        self.linear_expansion_hint = hint_label("Leave at the default unless you know why you need to change it.")
+        self.linear_expansion_hint = hint_label(tr("Leave at the default unless you know why you need to change it."))
         self.linear_expansion_hint.setVisible(False)
         box.addWidget(self.linear_expansion_hint)
         self.linear_expansion_combo.currentIndexChanged.connect(self._on_linear_expansion_changed)
 
-        self.linear_corrections_label = field_label("Corrections")
+        self.linear_corrections_label = field_label(tr("Corrections"))
         self.linear_corrections_label.setVisible(False)
         box.addWidget(self.linear_corrections_label)
 
-        self.linear_wb_checkbox = QCheckBox("Apply white balance")
-        self.linear_wb_checkbox.setToolTip("Multiply by the as-shot WB gains before writing")
+        self.linear_wb_checkbox = QCheckBox(tr("Apply white balance"))
+        self.linear_wb_checkbox.setToolTip(tr("Multiply by the as-shot WB gains before writing"))
         self.linear_wb_checkbox.setChecked(self.state.linear_apply_wb)
         self.linear_wb_checkbox.setVisible(False)
         self.linear_wb_checkbox.toggled.connect(self._on_linear_correction_changed)
         box.addWidget(self.linear_wb_checkbox)
 
-        self.linear_flatfield_checkbox = QCheckBox("Apply flatfield")
-        self.linear_flatfield_checkbox.setToolTip("Apply the flatfield gain correction")
+        self.linear_flatfield_checkbox = QCheckBox(tr("Apply flatfield"))
+        self.linear_flatfield_checkbox.setToolTip(tr("Apply the flatfield gain correction"))
         self.linear_flatfield_checkbox.setChecked(self.state.linear_apply_flatfield)
         self.linear_flatfield_checkbox.setVisible(False)
         self.linear_flatfield_checkbox.toggled.connect(self._on_linear_correction_changed)
         box.addWidget(self.linear_flatfield_checkbox)
 
-        self.linear_sensor_checkbox = QCheckBox("Apply sensor correction")
-        self.linear_sensor_checkbox.setToolTip("Apply the sensor crosstalk unmixing matrix")
+        self.linear_sensor_checkbox = QCheckBox(tr("Apply sensor correction"))
+        self.linear_sensor_checkbox.setToolTip(tr("Apply the sensor crosstalk unmixing matrix"))
         self.linear_sensor_checkbox.setChecked(self.state.linear_apply_sensor)
         self.linear_sensor_checkbox.setVisible(False)
         self.linear_sensor_checkbox.toggled.connect(self._on_linear_correction_changed)
         box.addWidget(self.linear_sensor_checkbox)
 
-        self.linear_ice_checkbox = QCheckBox("Apply ICE dust removal")
-        self.linear_ice_checkbox.setToolTip("Apply IR-based dust and scratch correction")
+        self.linear_ice_checkbox = QCheckBox(tr("Apply ICE dust removal"))
+        self.linear_ice_checkbox.setToolTip(tr("Apply IR-based dust and scratch correction"))
         self.linear_ice_checkbox.setChecked(self.state.linear_apply_ice)
         self.linear_ice_checkbox.setVisible(False)
         self.linear_ice_checkbox.toggled.connect(self._on_linear_correction_changed)
@@ -720,7 +739,7 @@ class ExportSidebar(BaseSidebar):
 
         gamma_row = QHBoxLayout()
         gamma_row.setContentsMargins(0, 0, 0, 0)
-        self.linear_gamma_label = field_label("Input gamma")
+        self.linear_gamma_label = field_label(tr("Input gamma"))
         gamma_row.addWidget(self.linear_gamma_label)
         self.linear_gamma_combo = QComboBox()
         self.linear_gamma_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -729,13 +748,16 @@ class ExportSidebar(BaseSidebar):
         self.linear_gamma_row.setLayout(gamma_row)
         self.linear_gamma_row.setVisible(False)
         box.addWidget(self.linear_gamma_row)
-        self.linear_gamma_hint = hint_label("Select the gamma encoding of the input TIFF so it can be linearized before export.")
+        self.linear_gamma_hint = hint_label(tr("Select the gamma encoding of the input TIFF so it can be linearized before export."))
         self.linear_gamma_hint.setVisible(False)
         box.addWidget(self.linear_gamma_hint)
         self.linear_gamma_combo.currentIndexChanged.connect(self._on_linear_gamma_changed)
 
         self.linear_corrections_hint = hint_label(
-            "Corrections are baked in and cannot be undone from the exported file. Re-export from the original RAW to get uncorrected data."
+            tr(
+                "Corrections are baked in and cannot be undone from the exported file. "
+                "Re-export from the original RAW to get uncorrected data."
+            )
         )
         self.linear_corrections_hint.setVisible(False)
         box.addWidget(self.linear_corrections_hint)
@@ -841,11 +863,11 @@ class ExportSidebar(BaseSidebar):
         combo.blockSignals(True)
         combo.clear()
         if not options:
-            combo.addItem("N/A")
+            combo.addItem(tr("N/A"))
             combo.setEnabled(False)
         else:
             for label, _val in options:
-                combo.addItem(label)
+                combo.addItem(tr(label))
             combo.setEnabled(True)
             current = self.state.linear_expansion
             for i, (_label, val) in enumerate(options):
@@ -873,35 +895,35 @@ class ExportSidebar(BaseSidebar):
         self.linear_ice_checkbox.setVisible(has_ir)
         self.linear_ice_checkbox.setEnabled(has_ir)
         if not has_ir:
-            self.linear_ice_checkbox.setToolTip("Source has no IR channel")
+            self.linear_ice_checkbox.setToolTip(tr("Source has no IR channel"))
         else:
-            self.linear_ice_checkbox.setToolTip("Apply IR-based dust and scratch correction")
+            self.linear_ice_checkbox.setToolTip(tr("Apply IR-based dust and scratch correction"))
 
         wb_reason = wb_bake_block_reason(self.state.config.rgbscan, self.state.config.process)
         wb_available = not wb_reason
         self.linear_wb_checkbox.setEnabled(wb_available)
         if wb_reason == "trichrome":
             self.linear_wb_checkbox.setToolTip(
-                "No practical use: each Trichrome channel is its own narrowband exposure, not a broadband as-shot gain"
+                tr("No practical use: each Trichrome channel is its own narrowband exposure, not a broadband as-shot gain")
             )
         elif wb_reason == "narrowband":
-            self.linear_wb_checkbox.setToolTip("No practical use: as-shot WB gains do not correct a narrowband capture")
+            self.linear_wb_checkbox.setToolTip(tr("No practical use: as-shot WB gains do not correct a narrowband capture"))
         else:
-            self.linear_wb_checkbox.setToolTip("Multiply by the as-shot WB gains before writing")
+            self.linear_wb_checkbox.setToolTip(tr("Multiply by the as-shot WB gains before writing"))
 
         has_flatfield = bool(self.state.config.flatfield.apply and self.state.config.flatfield.profile_id)
         self.linear_flatfield_checkbox.setEnabled(has_flatfield)
         if not has_flatfield:
-            self.linear_flatfield_checkbox.setToolTip("No flatfield profile configured")
+            self.linear_flatfield_checkbox.setToolTip(tr("No flatfield profile configured"))
         else:
-            self.linear_flatfield_checkbox.setToolTip("Apply the flatfield gain correction")
+            self.linear_flatfield_checkbox.setToolTip(tr("Apply the flatfield gain correction"))
 
         has_matrix = self.state.config.process.sensor_matrix is not None
         self.linear_sensor_checkbox.setEnabled(has_matrix)
         if not has_matrix:
-            self.linear_sensor_checkbox.setToolTip("No sensor correction matrix configured")
+            self.linear_sensor_checkbox.setToolTip(tr("No sensor correction matrix configured"))
         else:
-            self.linear_sensor_checkbox.setToolTip("Apply the sensor crosstalk unmixing matrix")
+            self.linear_sensor_checkbox.setToolTip(tr("Apply the sensor crosstalk unmixing matrix"))
 
         any_on = (
             (self.state.linear_apply_wb and wb_available)
@@ -924,7 +946,7 @@ class ExportSidebar(BaseSidebar):
         combo.blockSignals(True)
         combo.clear()
         for key, label in TIFF_GAMMA_OPTIONS:
-            combo.addItem(label, key)
+            combo.addItem(tr(label), key)
         current = self.state.linear_gamma_key
         for i, (key, _label) in enumerate(TIFF_GAMMA_OPTIONS):
             if key == current:
@@ -977,7 +999,9 @@ class ExportSidebar(BaseSidebar):
         It has to sit here rather than in the collapsed Soft Proof section: it explains a
         preview that does not match the export, and a collapsed hint cannot.
         """
-        self.proof_mismatch_label = hint_label("Soft proof is off, so the preview won't show the export's color clipping", kind="warning")
+        self.proof_mismatch_label = hint_label(
+            tr("Soft proof is off, so the preview won't show the export's color clipping"), kind="warning"
+        )
         self.form.add_color_widget(self.proof_mismatch_label)
 
     def _add_soft_proof_section(self) -> None:
@@ -992,17 +1016,19 @@ class ExportSidebar(BaseSidebar):
         self.proof_condition_combo = QComboBox()
         constrain_combo(self.proof_condition_combo)
         self.proof_condition_combo.setToolTip(
-            "A saved printer and paper set-up: profile, intent and simulation toggles in one pick. "
-            "None proofs the export target and simulates no paper."
+            tr(
+                "A saved printer and paper set-up: profile, intent and simulation toggles in one pick. "
+                "None proofs the export target and simulates no paper."
+            )
         )
         self.proof_save_btn = QToolButton()
         self.proof_save_btn.setIcon(qta.icon("fa5s.save", color="#aaa"))
-        self.proof_save_btn.setToolTip("Save the current proof set-up as a named preset")
+        self.proof_save_btn.setToolTip(tr("Save the current proof set-up as a named preset"))
         self.proof_delete_btn = QToolButton()
         self.proof_delete_btn.setIcon(qta.icon("fa5s.trash", color="#aaa"))
-        self.proof_delete_btn.setToolTip("Delete the selected preset")
+        self.proof_delete_btn.setToolTip(tr("Delete the selected preset"))
         cond_row = QHBoxLayout()
-        cond_label = field_label("Preset")
+        cond_label = field_label(tr("Preset"))
         cond_label.setFixedWidth(FIELD_LABEL_WIDTH)
         cond_row.addWidget(cond_label)
         cond_row.addWidget(self.proof_condition_combo, 1)
@@ -1010,13 +1036,15 @@ class ExportSidebar(BaseSidebar):
         cond_row.addWidget(self.proof_delete_btn)
         col.addLayout(cond_row)
 
-        self.soft_proof_checkbox = QCheckBox("Proof on screen")
+        self.soft_proof_checkbox = QCheckBox(tr("Proof on screen"))
         self.soft_proof_checkbox.setChecked(self.state.soft_proof_enabled)
         self.soft_proof_checkbox.setToolTip(
             tooltip_with_shortcut(
-                "Simulate the proof profile and Input ICC in the preview, so what you see matches "
-                "what you'll get. Preview only — the export is unaffected either way. Turn off to "
-                "preview at full gamut.",
+                tr(
+                    "Simulate the proof profile and Input ICC in the preview, so what you see matches "
+                    "what you'll get. Preview only — the export is unaffected either way. Turn off to "
+                    "preview at full gamut."
+                ),
                 "toggle_soft_proof",
             )
         )
@@ -1027,48 +1055,60 @@ class ExportSidebar(BaseSidebar):
         self.proof_profile_combo = QComboBox()
         constrain_combo(self.proof_profile_combo)
         self.proof_profile_combo.setToolTip(
-            "What the preview is proofed through. Follows the Export profile unless you name a "
-            "printer or paper here. Set one to proof a print while exporting something else."
+            tr(
+                "What the preview is proofed through. Follows the Export profile unless you name a "
+                "printer or paper here. Set one to proof a print while exporting something else."
+            )
         )
-        col.addLayout(self._proof_row("Profile", self.proof_profile_combo))
+        col.addLayout(self._proof_row(tr("Profile"), self.proof_profile_combo))
 
         self.proof_intent_combo = QComboBox()
         constrain_combo(self.proof_intent_combo)
         for value, label in PROOF_INTENT_LABELS.items():
-            self.proof_intent_combo.addItem(label, value)
+            self.proof_intent_combo.addItem(tr(label), value)
         self.proof_intent_combo.setToolTip(
-            "How colors the paper cannot make are fitted into what it can. Relative Colorimetric "
-            "keeps in-gamut colors exact and clips the rest to the edge; Perceptual squeezes the "
-            "whole picture inward so the relationships between colors survive, which a printer "
-            "profile carries its own table for. Saturation favours vividness over accuracy."
+            tr(
+                "How colors the paper cannot make are fitted into what it can. Relative Colorimetric "
+                "keeps in-gamut colors exact and clips the rest to the edge; Perceptual squeezes the "
+                "whole picture inward so the relationships between colors survive, which a printer "
+                "profile carries its own table for. Saturation favours vividness over accuracy."
+            )
         )
-        col.addLayout(self._proof_row("Intent", self.proof_intent_combo))
+        col.addLayout(self._proof_row(tr("Intent"), self.proof_intent_combo))
 
-        self.proof_bpc_checkbox = QCheckBox("Black point compensation")
+        self.proof_bpc_checkbox = QCheckBox(tr("Black point compensation"))
         self.proof_bpc_checkbox.setToolTip(
-            "Scale the darkest tone in the picture onto the darkest the paper can make, instead of "
-            "clipping everything below it. Off is only useful for judging what falls off the bottom."
+            tr(
+                "Scale the darkest tone in the picture onto the darkest the paper can make, instead of "
+                "clipping everything below it. Off is only useful for judging what falls off the bottom."
+            )
         )
         col.addWidget(self.proof_bpc_checkbox)
 
-        self.proof_paper_white_checkbox = QCheckBox("Simulate paper white")
+        self.proof_paper_white_checkbox = QCheckBox(tr("Simulate paper white"))
         self.proof_paper_white_checkbox.setToolTip(
-            "Show the paper's own white instead of the screen's. The picture goes dimmer and takes "
-            "the paper's tint, which is the print you will hold. Give your eyes a moment to adapt."
+            tr(
+                "Show the paper's own white instead of the screen's. The picture goes dimmer and takes "
+                "the paper's tint, which is the print you will hold. Give your eyes a moment to adapt."
+            )
         )
         col.addWidget(self.proof_paper_white_checkbox)
 
-        self.proof_ink_black_checkbox = QCheckBox("Simulate ink black")
+        self.proof_ink_black_checkbox = QCheckBox(tr("Simulate ink black"))
         self.proof_ink_black_checkbox.setToolTip(
-            "Show the paper's real deepest black rather than mapping it onto the screen's. Shadows "
-            "lift and lose separation, which is what the print does."
+            tr(
+                "Show the paper's real deepest black rather than mapping it onto the screen's. Shadows "
+                "lift and lose separation, which is what the print does."
+            )
         )
         col.addWidget(self.proof_ink_black_checkbox)
 
-        self.proof_gamut_checkbox = QCheckBox("Gamut warning")
+        self.proof_gamut_checkbox = QCheckBox(tr("Gamut warning"))
         self.proof_gamut_checkbox.setToolTip(
-            "Flatten every color the profile cannot print to grey, so the unprintable areas are "
-            "visible rather than merely counted. The Analysis panel's Gamut row counts them."
+            tr(
+                "Flatten every color the profile cannot print to grey, so the unprintable areas are "
+                "visible rather than merely counted. The Analysis panel's Gamut row counts them."
+            )
         )
         col.addWidget(self.proof_gamut_checkbox)
 
@@ -1083,12 +1123,12 @@ class ExportSidebar(BaseSidebar):
         ]
         self.display_map = [None] + self.display_spaces
         self.display_combo = QComboBox()
-        self.display_combo.addItems(["As detected"] + self.display_spaces)
+        self.display_combo.addItems([tr("As detected")] + self.display_spaces)
         constrain_combo(self.display_combo)
-        self.display_combo.setToolTip("Monitor profile the preview is displayed on (affects preview only, not export)")
+        self.display_combo.setToolTip(tr("Monitor profile the preview is displayed on (affects preview only, not export)"))
         override = self.state.monitor_profile_override
-        self.display_combo.setCurrentText(override if override in self.display_spaces else "As detected")
-        col.addLayout(self._proof_row("Display", self.display_combo))
+        self.display_combo.setCurrentText(override if override in self.display_spaces else tr("As detected"))
+        col.addLayout(self._proof_row(tr("Display"), self.display_combo))
 
         self.display_detected_label = hint_label("")
         col.addWidget(self.display_detected_label)
@@ -1096,8 +1136,10 @@ class ExportSidebar(BaseSidebar):
 
         repo = self.controller.session.repo
         expanded = bool(repo.get_global_setting("section_expanded_soft_proof", default=False))
-        self._soft_proof_section = CollapsibleSection("Soft Proof", expanded=expanded, icon=qta.icon("fa5s.print", color="#aaa"), info=True)
-        self._soft_proof_section.setToolTip("Simulate the print on screen: profile, intent and the paper's limits. Preview only.")
+        self._soft_proof_section = CollapsibleSection(
+            tr("Soft Proof"), expanded=expanded, icon=qta.icon("fa5s.print", color="#aaa"), info=True
+        )
+        self._soft_proof_section.setToolTip(tr("Simulate the print on screen: profile, intent and the paper's limits. Preview only."))
         self._soft_proof_section.set_content(content)
         self._soft_proof_section.expanded_changed.connect(lambda checked: repo.save_global_setting("section_expanded_soft_proof", checked))
         self._soft_proof_section.info_requested.connect(self._show_soft_proof_help)
@@ -1119,7 +1161,7 @@ class ExportSidebar(BaseSidebar):
     def _show_soft_proof_help(self) -> None:
         from negpy.desktop.view.widgets.section_help_dialog import SectionHelpDialog
 
-        SectionHelpDialog("soft_proof", "Soft Proof", self).exec()
+        SectionHelpDialog("soft_proof", tr("Soft Proof"), self).exec()
 
     def _reload_proof_profiles(self) -> None:
         """Imported ICC profiles only: proofing through a working-space profile answers no
@@ -1129,7 +1171,7 @@ class ExportSidebar(BaseSidebar):
         current = self.state.proof_icc_path
         self.proof_profile_combo.blockSignals(True)
         self.proof_profile_combo.clear()
-        self.proof_profile_combo.addItem("Use Export profile", None)
+        self.proof_profile_combo.addItem(tr("Use Export profile"), None)
         mapped = {ColorSpaceRegistry.get_icc_path(cs.value) for cs in ColorSpace}
         for path in ColorService.get_available_profiles():
             if path not in mapped:
@@ -1141,7 +1183,7 @@ class ExportSidebar(BaseSidebar):
     def _reload_proof_conditions(self) -> None:
         self.proof_condition_combo.blockSignals(True)
         self.proof_condition_combo.clear()
-        self.proof_condition_combo.addItem("None", _PROOF_PRESET_NONE)
+        self.proof_condition_combo.addItem(tr("None"), _PROOF_PRESET_NONE)
         for cond in self.state.proof_conditions:
             self.proof_condition_combo.addItem(cond["name"], cond["name"])
         self.proof_condition_combo.blockSignals(False)
@@ -1204,7 +1246,7 @@ class ExportSidebar(BaseSidebar):
         self._refresh_proof_mismatch_warning()
 
     def _on_save_proof_condition(self) -> None:
-        name, ok = QInputDialog.getText(self, "Save proof preset", "Name (printer and paper):")
+        name, ok = QInputDialog.getText(self, tr("Save proof preset"), tr("Name (printer and paper):"))
         name = name.strip()
         if not (ok and name):
             return
@@ -1246,26 +1288,28 @@ class ExportSidebar(BaseSidebar):
 
         self.sidecars_enabled_btn = self._small_toggle(
             "fa5s.file-export",
-            "Save on export",
+            tr("Save on export"),
             conf.export_sidecars_enabled,
-            "When on, every export also writes a .negpy edit sidecar next to each source frame. Edits stay in the database too.",
+            tr("When on, every export also writes a .negpy edit sidecar next to each source frame. Edits stay in the database too."),
         )
         btn_row.addWidget(self.sidecars_enabled_btn)
 
-        self.export_sidecars_btn = QPushButton(" Export sidecars")
+        self.export_sidecars_btn = QPushButton(tr(" Export sidecars"))
         self.export_sidecars_btn.setObjectName("export_sidecars_btn")
         self.export_sidecars_btn.setProperty("primary", True)
         self.export_sidecars_btn.setFixedHeight(default_button_height())
         self.export_sidecars_btn.setIcon(qta.icon("fa5s.file-code", color="white"))
-        self.export_sidecars_btn.setToolTip("Write edit sidecars for all visible frames now")
+        self.export_sidecars_btn.setToolTip(tr("Write edit sidecars for all visible frames now"))
         btn_row.addWidget(self.export_sidecars_btn)
 
         content_layout.addLayout(btn_row)
 
         repo = self.controller.session.repo
         expanded = bool(repo.get_global_setting("section_expanded_export_sidecars", default=False))
-        self._sidecars_section = CollapsibleSection("Sidecars", expanded=expanded, icon=qta.icon("fa5s.file-export", color="#aaa"))
-        self._sidecars_section.setToolTip("Optional plain-file copies of edits next to your sources, for archival. SQLite stays primary.")
+        self._sidecars_section = CollapsibleSection(tr("Sidecars"), expanded=expanded, icon=qta.icon("fa5s.file-export", color="#aaa"))
+        self._sidecars_section.setToolTip(
+            tr("Optional plain-file copies of edits next to your sources, for archival. SQLite stays primary.")
+        )
         self._sidecars_section.set_content(content)
         self._sidecars_section.expanded_changed.connect(
             lambda checked: repo.save_global_setting("section_expanded_export_sidecars", checked)
@@ -1326,9 +1370,9 @@ class ExportSidebar(BaseSidebar):
         group.setExclusive(True)
         actions = {}
         for key, (label, _btn_label, tooltip) in scopes.items():
-            act = menu.addAction(label)
+            act = menu.addAction(tr(label))
             act.setCheckable(True)
-            act.setToolTip(tooltip)
+            act.setToolTip(tr(tooltip))
             act.triggered.connect(lambda _checked=False, k=key: on_select(k))
             group.addAction(act)
             actions[key] = act
@@ -1339,8 +1383,8 @@ class ExportSidebar(BaseSidebar):
         menu, self._export_scope_actions = self._build_scope_menu(self._EXPORT_SCOPES, self._set_export_scope)
         self._export_menu = menu
 
-        container, self.export_main_btn, self.export_menu_btn = make_split_button(" Export", "fa5s.check-circle", menu, primary=True)
-        self.export_menu_btn.setToolTip("Choose what the Export button does")
+        container, self.export_main_btn, self.export_menu_btn = make_split_button(tr(" Export"), "fa5s.check-circle", menu, primary=True)
+        self.export_menu_btn.setToolTip(tr("Choose what the Export button does"))
         self.layout.addWidget(container)
 
         saved = self.controller.session.repo.get_global_setting("export_scope", "current")
@@ -1351,8 +1395,8 @@ class ExportSidebar(BaseSidebar):
         self._export_scope = key
         _label, btn_label, tooltip = self._EXPORT_SCOPES[key]
         self._export_scope_actions[key].setChecked(True)
-        self.export_main_btn.setText(btn_label)
-        self.export_main_btn.setToolTip(tooltip_with_shortcut(tooltip, self._EXPORT_SCOPE_SHORTCUTS.get(key)))
+        self.export_main_btn.setText(tr(btn_label))
+        self.export_main_btn.setToolTip(tooltip_with_shortcut(tr(tooltip), self._EXPORT_SCOPE_SHORTCUTS.get(key)))
         if persist:
             self.controller.session.repo.save_global_setting("export_scope", key)
 
@@ -1394,8 +1438,8 @@ class ExportSidebar(BaseSidebar):
         self._preset_scope = key
         _label, btn_label, tooltip = self._PRESET_SCOPES[key]
         self._preset_scope_actions[key].setChecked(True)
-        self.export_presets_btn.setText(btn_label)
-        self.export_presets_btn.setToolTip(tooltip)
+        self.export_presets_btn.setText(tr(btn_label))
+        self.export_presets_btn.setToolTip(tr(tooltip))
         if persist:
             self.controller.session.repo.save_global_setting("preset_export_scope", key)
 
@@ -1535,12 +1579,12 @@ class ExportSidebar(BaseSidebar):
 
         detected = self.state.monitor_icc_detected_bytes
         desc = profile_description(detected)
-        self.display_combo.setItemText(0, f"As detected ({desc})")
+        self.display_combo.setItemText(0, tr("As detected ({desc})").format(desc=desc))
         if detected is None:
-            self.display_detected_label.setText("Auto-detection failed — select your monitor's color space above.")
+            self.display_detected_label.setText(tr("Auto-detection failed — select your monitor's color space above."))
             set_hint_kind(self.display_detected_label, "error")
         else:
-            self.display_detected_label.setText(f"Detected: {desc}")
+            self.display_detected_label.setText(tr("Detected: {desc}").format(desc=desc))
             set_hint_kind(self.display_detected_label, "muted")
 
     def _refresh_proof_mismatch_warning(self) -> None:
@@ -1553,11 +1597,11 @@ class ExportSidebar(BaseSidebar):
         export_cs = vals["export_color_space"]
         retargets = bool(vals["icc_output_path"]) or export_cs not in (ColorSpace.SAME_AS_SOURCE.value, WORKING_COLOR_SPACE)
         if not self.soft_proof_checkbox.isChecked():
-            self.proof_mismatch_label.setText("Soft proof is off, so the preview won't show the export's color clipping")
+            self.proof_mismatch_label.setText(tr("Soft proof is off, so the preview won't show the export's color clipping"))
             self.proof_mismatch_label.setVisible(retargets)
             return
         detached = bool(self.state.proof_icc_path)
-        self.proof_mismatch_label.setText("Proofing a different profile than the export writes")
+        self.proof_mismatch_label.setText(tr("Proofing a different profile than the export writes"))
         self.proof_mismatch_label.setVisible(detached)
 
     def _refresh_export_enabled(self) -> None:
@@ -1586,7 +1630,7 @@ class ExportSidebar(BaseSidebar):
             self.form.set_source_space(self.state.source_cs)
             self._sync_proof_controls()
             override = self.state.monitor_profile_override
-            self.display_combo.setCurrentText(override if override in self.display_spaces else "As detected")
+            self.display_combo.setCurrentText(override if override in self.display_spaces else tr("As detected"))
             self._refresh_display_info()
             layout = self._contact_sheet_layout_for_config(conf)
             self.cs_cell_px_input.setValue(layout.cell_px)

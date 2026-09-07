@@ -31,6 +31,8 @@ from PyQt6.QtCore import QEvent, QModelIndex, QSortFilterProxyModel, Qt, QTimer,
 from PyQt6.QtGui import QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import QCompleter, QHBoxLayout, QLineEdit, QToolButton, QWidget
 
+from negpy.kernel.system.i18n import tr
+
 
 _NONE_LABEL = "— None —"
 
@@ -82,7 +84,7 @@ class SearchableGearCombo(QWidget):
         self._updating = False
 
         self._line = QLineEdit(self)
-        self._line.setPlaceholderText(placeholder)
+        self._line.setPlaceholderText(tr(placeholder))
         self._line.textEdited.connect(self._on_text_edited)
         self._line.editingFinished.connect(self._on_editing_finished)
         self._line.installEventFilter(self)

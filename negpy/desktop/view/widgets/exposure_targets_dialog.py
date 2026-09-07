@@ -7,6 +7,7 @@ from negpy.desktop.view.styles.templates import hint_label, section_subheader
 from negpy.desktop.view.widgets.sliders import CompactSlider
 from negpy.features.exposure.models import DEFAULT_TARGETS, TUNABLE_TARGETS
 from negpy.desktop.view.widgets.floating_panel import float_over_app
+from negpy.kernel.system.i18n import tr
 
 # (key, slider label, tooltip) grouped under a heading + explanatory blurb.
 _GROUPS = (
@@ -66,7 +67,7 @@ class ExposureTargetsDialog(QDialog):
 
     def __init__(self, current: Dict[str, float], parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Auto Density & Grade Targets")
+        self.setWindowTitle(tr("Auto Density & Grade Targets"))
         float_over_app(self)
         self.setMinimumWidth(340)
 
@@ -76,12 +77,12 @@ class ExposureTargetsDialog(QDialog):
         root.setSpacing(4)
 
         for title, blurb, entries in _GROUPS:
-            root.addWidget(section_subheader(title))
-            root.addWidget(hint_label(blurb))
+            root.addWidget(section_subheader(tr(title)))
+            root.addWidget(hint_label(tr(blurb)))
             for key, label, tooltip in entries:
                 lo, hi = TUNABLE_TARGETS[key]
-                slider = CompactSlider(label, lo, hi, float(current.get(key, DEFAULT_TARGETS[key])))
-                slider.setToolTip(tooltip)
+                slider = CompactSlider(tr(label), lo, hi, float(current.get(key, DEFAULT_TARGETS[key])))
+                slider.setToolTip(tr(tooltip))
                 slider.valueChanged.connect(self._emit_preview)
                 self._sliders[key] = slider
                 root.addWidget(slider)

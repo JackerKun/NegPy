@@ -12,6 +12,7 @@ from negpy.desktop.view.sidebar.header import SidebarHeader
 from negpy.desktop.view.sidebar.files import FileBrowser
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.update_dialog import UpdateDialog, start_update_check
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.updater import UpdateInfo
 from negpy.kernel.system.version import get_app_version
 
@@ -113,13 +114,12 @@ class SessionPanel(QWidget):
             return
         self.update_info = info
         self.header.set_update_state(True)
-        self.update_label.setText(
-            f'<a href="#update" style="color:{THEME.status_success}; text-decoration:none;">⬇ Update Available: v{info.version}</a>'
-        )
+        update_text = tr("Update Available: v{version}").format(version=info.version)
+        self.update_label.setText(f'<a href="#update" style="color:{THEME.status_success}; text-decoration:none;">⬇ {update_text}</a>')
         self.update_label.setToolTip(
-            "Install this update — NegPy downloads it, closes, and reopens on the new version"
+            tr("Install this update — NegPy downloads it, closes, and reopens on the new version")
             if info.can_self_install
-            else "See what is new and where to download it"
+            else tr("See what is new and where to download it")
         )
         self.update_label.setVisible(True)
 
@@ -140,7 +140,7 @@ class SessionPanel(QWidget):
     def _on_manual_check(self, info: Optional[UpdateInfo]) -> None:
         if info is None:
             self.header.set_update_state(False)
-            QMessageBox.information(self, "NegPy", f"NegPy {get_app_version()} is up to date.")
+            QMessageBox.information(self, "NegPy", tr("NegPy {version} is up to date.").format(version=get_app_version()))
             return
         self._on_update_checked(info)
         self.show_update_dialog()

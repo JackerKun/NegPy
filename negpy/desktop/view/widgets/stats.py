@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QPushButton, QTool
 
 from negpy.desktop.view.styles.theme import THEME
 from negpy.features.exposure.stats import StatRow
+from negpy.kernel.system.i18n import tr
 
 _TOOLTIPS = {
     "Negative": (
@@ -72,7 +73,7 @@ class DensitometerRow(QWidget):
         grid.setContentsMargins(4, 0, 4, 0)
         grid.setHorizontalSpacing(8)
         grid.setColumnStretch(1, 1)
-        name = QLabel("Probe")
+        name = QLabel(tr("Probe"))
         name.setStyleSheet(f"color: {THEME.text_secondary}; font-size: {THEME.font_size_small}px;")
         self._value = QLabel(_PROBE_EMPTY)
         self._value.setStyleSheet(f"color: {THEME.text_primary}; font-size: {THEME.font_size_small}px;")
@@ -81,8 +82,8 @@ class DensitometerRow(QWidget):
         grid.addWidget(self._value, 0, 1)
         _lock_height(name, "Probe")
         _lock_height(self._value, _PROBE_SAMPLE)
-        name.setToolTip(self._TOOLTIP)
-        self._value.setToolTip(self._TOOLTIP)
+        name.setToolTip(tr(self._TOOLTIP))
+        self._value.setToolTip(tr(self._TOOLTIP))
 
     def set_reading(self, reading) -> None:
         from negpy.features.exposure.densitometer import format_reading
@@ -146,7 +147,7 @@ class ZonePlacementRows(QWidget):
             lands.setStyleSheet(warn_css)
             remove = QToolButton()
             remove.setText("✕")
-            remove.setToolTip("Remove this pin")
+            remove.setToolTip(tr("Remove this pin"))
             minus.clicked.connect(lambda _=False, idx=i: self._step(idx, -1.0 / 3.0))
             plus.clicked.connect(lambda _=False, idx=i: self._step(idx, 1.0 / 3.0))
             remove.clicked.connect(lambda _=False, idx=i: self.remove_clicked.emit(idx))
@@ -170,9 +171,9 @@ class ZonePlacementRows(QWidget):
 
         buttons = QHBoxLayout()
         buttons.setContentsMargins(0, 2, 0, 2)
-        self.apply_btn = QPushButton("Place zones")
+        self.apply_btn = QPushButton(tr("Place zones"))
         self.apply_btn.setProperty("primary", True)
-        self.apply_btn.setToolTip("Commit the solved print (Enter)")
+        self.apply_btn.setToolTip(tr("Commit the solved print (Enter)"))
         self.apply_btn.clicked.connect(self.apply_clicked.emit)
         buttons.addWidget(self.apply_btn)
         col.addLayout(buttons)
@@ -182,7 +183,7 @@ class ZonePlacementRows(QWidget):
         self.solving.setVisible(False)
         col.addWidget(self.solving)
 
-        self.setToolTip(self._TOOLTIP)
+        self.setToolTip(tr(self._TOOLTIP))
         self.setVisible(False)
 
     def _step(self, index: int, delta: float) -> None:
@@ -202,18 +203,18 @@ class ZonePlacementRows(QWidget):
                 continue
             self._targets[index] = target
             self._rows[index].setVisible(True)
-            self._names[index].setText(f"Pin {index + 1} · reads {measured}")
+            self._names[index].setText(tr("Pin {num} · reads {zone}").format(num=index + 1, zone=measured))
             self._target_labels[index].setText(zone_roman(target))
             if achieved is not None:
-                self._lands[index].setText(f"→ lands {achieved}")
-                self._lands[index].setToolTip("Outside the paper's scale at this grade and exposure — closest print shown.")
+                self._lands[index].setText(tr("→ lands {zone}").format(zone=achieved))
+                self._lands[index].setToolTip(tr("Outside the paper's scale at this grade and exposure — closest print shown."))
             else:
                 self._lands[index].setText("")
                 self._lands[index].setToolTip("")
             self._lands[index].setVisible(achieved is not None)
             solvable = row_solvable
         self.apply_btn.setEnabled(solvable)
-        self.apply_btn.setToolTip("The outer pins read the same tone — grade needs two different tones." if not solvable else "")
+        self.apply_btn.setToolTip(tr("The outer pins read the same tone — grade needs two different tones.") if not solvable else "")
         self.solving.setText(solving)
         self.solving.setVisible(bool(solving))
 
@@ -260,8 +261,8 @@ class NegativeStatsWidget(QWidget):
                 self._values[i].setText("")
                 continue
             row = rows[i]
-            tip = _TOOLTIPS.get(row.name, "")
-            self._names[i].setText(row.name)
+            tip = tr(_TOOLTIPS.get(row.name, ""))
+            self._names[i].setText(tr(row.name))
             self._values[i].setText(row.value)
             self._values[i].setStyleSheet(self._warn_css if row.warn else self._value_css)
             # Tooltip on the whole row (hover anywhere shows it).

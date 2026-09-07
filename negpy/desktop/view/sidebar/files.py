@@ -38,7 +38,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from negpy.kernel.system.text import count_of
 from negpy.desktop.controller import AppController
 from negpy.desktop.session import _source_effective_bounds, composite_kind
 from negpy.desktop.view.confirm import confirm_unload
@@ -53,6 +52,7 @@ from negpy.infrastructure.loaders.helpers import get_supported_raw_wildcards
 from negpy.desktop.view.sidebar.library_tree import LibraryTree
 from negpy.desktop.view.widgets.collapsible import CollapsibleSection
 from negpy.desktop.view.widgets.file_dialogs import last_open_folder, pick_start_dir
+from negpy.kernel.system.i18n import tr
 from negpy.services.assets.library import folder_counts
 
 
@@ -398,29 +398,29 @@ class FileBrowser(QWidget):
 
         self.library_btn = QToolButton()
         self.library_btn.setIcon(qta.icon("fa5s.book-open", color=THEME.text_primary))
-        self.library_btn.setToolTip("Library — browse the folder your scans live in")
+        self.library_btn.setToolTip(tr("Library — browse the folder your scans live in"))
 
         self.add_files_btn = QToolButton()
         self.add_files_btn.setIcon(qta.icon("fa5s.file-import", color=THEME.text_primary))
-        self.add_files_btn.setToolTip("Add files")
+        self.add_files_btn.setToolTip(tr("Add files"))
         self.add_folder_btn = QToolButton()
         self.add_folder_btn.setIcon(qta.icon("fa5s.folder-plus", color=THEME.text_primary))
-        self.add_folder_btn.setToolTip("Add folder")
+        self.add_folder_btn.setToolTip(tr("Add folder"))
         self.unload_btn = QToolButton()
         self.unload_btn.setIcon(qta.icon("fa5s.times-circle", color=THEME.text_primary))
-        self.unload_btn.setToolTip("Clear all")
+        self.unload_btn.setToolTip(tr("Clear all"))
 
         self.hot_folder_btn = QToolButton()
         self.hot_folder_btn.setCheckable(True)
         self.hot_folder_btn.setIcon(qta.icon("fa5s.fire", color=THEME.text_primary))
-        self.hot_folder_btn.setToolTip("Hot Folder — automatically load new images from the current folder")
+        self.hot_folder_btn.setToolTip(tr("Hot Folder — automatically load new images from the current folder"))
         self._update_hot_folder_style(False)
 
         self.rgb_scan_btn = QToolButton()
         self.rgb_scan_btn.setCheckable(True)
         self.rgb_scan_btn.setIcon(qta.icon("mdi.google-circles-communities", color=THEME.text_primary))
         self.rgb_scan_btn.setToolTip(
-            "Trichrome Scan — assemble each frame from red/green/blue exposures; groups a folder into triplets on load"
+            tr("Trichrome Scan — assemble each frame from red/green/blue exposures; groups a folder into triplets on load")
         )
         self.rgb_scan_btn.setChecked(bool(self.session.repo.get_global_setting("rgbscan_mode", False)))
         self._update_rgb_scan_style(self.rgb_scan_btn.isChecked())
@@ -428,30 +428,32 @@ class FileBrowser(QWidget):
         self.half_frame_btn = QToolButton()
         self.half_frame_btn.setCheckable(True)
         self.half_frame_btn.setIcon(qta.icon("mdi.view-split-vertical", color=THEME.text_primary))
-        self.half_frame_btn.setToolTip("Half Frame — split each scan into two frames, edited and measured separately")
+        self.half_frame_btn.setToolTip(tr("Half Frame — split each scan into two frames, edited and measured separately"))
         self.half_frame_btn.setChecked(bool(self.session.repo.get_global_setting("half_frame_mode", False)))
         self._update_half_frame_style(self.half_frame_btn.isChecked())
 
         self.half_frame_adjust_btn = QToolButton()
         self.half_frame_adjust_btn.setIcon(qta.icon("mdi.tune-variant", color=THEME.text_primary))
-        self.half_frame_adjust_btn.setToolTip("Adjust Half Frame split — reposition the crop rectangle and split line for the current scan")
+        self.half_frame_adjust_btn.setToolTip(
+            tr("Adjust Half Frame split — reposition the crop rectangle and split line for the current scan")
+        )
         self.half_frame_adjust_btn.clicked.connect(self._on_half_frame_adjust)
 
         self.apply_btn = QToolButton()
         self.apply_btn.setIcon(qta.icon("fa5s.clone", color=THEME.text_primary))
-        self.apply_btn.setToolTip("Apply settings from the current frame to selected frames or the whole roll")
+        self.apply_btn.setToolTip(tr("Apply settings from the current frame to selected frames or the whole roll"))
         self.apply_btn.clicked.connect(self._open_apply_dialog)
 
         # Sheet filter dropdown
         self.sheet_btn = QToolButton()
-        self.sheet_btn.setToolTip("Sheet — filter the contact sheet by triage mark")
+        self.sheet_btn.setToolTip(tr("Sheet — filter the contact sheet by triage mark"))
         self.sheet_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         sheet_menu = QMenu(self.sheet_btn)
         self._sheet_group = QActionGroup(self)
         self._sheet_group.setExclusive(True)
-        self.act_sheet_all = sheet_menu.addAction("All frames")
-        self.act_sheet_keepers = sheet_menu.addAction("Keepers only")
-        self.act_sheet_unrejected = sheet_menu.addAction("Hide rejected")
+        self.act_sheet_all = sheet_menu.addAction(tr("All frames"))
+        self.act_sheet_keepers = sheet_menu.addAction(tr("Keepers only"))
+        self.act_sheet_unrejected = sheet_menu.addAction(tr("Hide rejected"))
         for act in (self.act_sheet_all, self.act_sheet_keepers, self.act_sheet_unrejected):
             act.setCheckable(True)
             self._sheet_group.addAction(act)
@@ -463,22 +465,22 @@ class FileBrowser(QWidget):
         # Sort dropdown
         self.sort_btn = QToolButton()
         self.sort_btn.setIcon(qta.icon("fa5s.sort", color=THEME.text_primary))
-        self.sort_btn.setToolTip("Sort")
+        self.sort_btn.setToolTip(tr("Sort"))
         self.sort_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 
         sort_menu = QMenu(self.sort_btn)
         self._order_group = QActionGroup(self)
         self._order_group.setExclusive(True)
-        self.act_sort_name = sort_menu.addAction("Name")
-        self.act_sort_date = sort_menu.addAction("Date")
+        self.act_sort_name = sort_menu.addAction(tr("Name"))
+        self.act_sort_date = sort_menu.addAction(tr("Date"))
         for act in (self.act_sort_name, self.act_sort_date):
             act.setCheckable(True)
             self._order_group.addAction(act)
         sort_menu.addSeparator()
         self._dir_group = QActionGroup(self)
         self._dir_group.setExclusive(True)
-        self.act_sort_asc = sort_menu.addAction("Ascending")
-        self.act_sort_desc = sort_menu.addAction("Descending")
+        self.act_sort_asc = sort_menu.addAction(tr("Ascending"))
+        self.act_sort_desc = sort_menu.addAction(tr("Descending"))
         for act in (self.act_sort_asc, self.act_sort_desc):
             act.setCheckable(True)
             self._dir_group.addAction(act)
@@ -508,19 +510,19 @@ class FileBrowser(QWidget):
         # OverflowBar rather than a QHBoxLayout: a plain row made the whole session panel
         # unshrinkable below every button laid end to end, so each new tool widened it for good.
         for widget, label in (
-            (self.library_btn, "Library"),
-            (self.add_files_btn, "Add files"),
-            (self.add_folder_btn, "Add folder"),
-            (self.unload_btn, "Clear all"),
+            (self.library_btn, tr("Library")),
+            (self.add_files_btn, tr("Add files")),
+            (self.add_folder_btn, tr("Add folder")),
+            (self.unload_btn, tr("Clear all")),
             (None, None),
-            (self.hot_folder_btn, "Hot Folder"),
-            (self.rgb_scan_btn, "Trichrome Scan"),
-            (self.half_frame_btn, "Half Frame"),
-            (self.half_frame_adjust_btn, "Adjust Half Frame"),
-            (self.apply_btn, "Apply settings"),
+            (self.hot_folder_btn, tr("Hot Folder")),
+            (self.rgb_scan_btn, tr("Trichrome Scan")),
+            (self.half_frame_btn, tr("Half Frame")),
+            (self.half_frame_adjust_btn, tr("Adjust Half Frame")),
+            (self.apply_btn, tr("Apply settings")),
             (None, None),
-            (self.sheet_btn, "Sheet filter"),
-            (self.sort_btn, "Sort"),
+            (self.sheet_btn, tr("Sheet filter")),
+            (self.sort_btn, tr("Sort")),
         ):
             if widget is None:
                 toolbar_row.add_separator(self._create_separator())
@@ -535,12 +537,14 @@ class FileBrowser(QWidget):
 
         search_row = QHBoxLayout()
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Filter — name, film:portra, iso:>=400…")
+        self.search_input.setPlaceholderText(tr("Filter — name, film:portra, iso:>=400…"))
         self.search_input.setToolTip(
-            "Filter the sheet. A bare word matches the filename; terms are combined with AND.\n"
-            "Fields: film, camera, lens, developer, format, scanning, roll, frame, iso, push,\n"
-            "shot, place, name, path, ext, date, keeper, rejected, edited.\n"
-            'Examples:  film:portra iso:>=400   ·   camera:"Nikon F3" -rejected:   ·   shot:>=1998-07   ·   place:tokyo'
+            tr(
+                "Filter the sheet. A bare word matches the filename; terms are combined with AND.\n"
+                "Fields: film, camera, lens, developer, format, scanning, roll, frame, iso, push,\n"
+                "shot, place, name, path, ext, date, keeper, rejected, edited.\n"
+                'Examples:  film:portra iso:>=400   ·   camera:"Nikon F3" -rejected:   ·   shot:>=1998-07   ·   place:tokyo'
+            )
         )
         self.search_input.setClearButtonEnabled(True)
         self.search_input.addAction(
@@ -553,7 +557,7 @@ class FileBrowser(QWidget):
         self.regex_btn = QPushButton(".*")
         self.regex_btn.setCheckable(True)
         self.regex_btn.setFixedWidth(36)
-        self.regex_btn.setToolTip("Regex mode")
+        self.regex_btn.setToolTip(tr("Regex mode"))
 
         # Same query text, wider net: the box above filters what is loaded, and this runs it
         # against every library folder and opens what it finds.
@@ -561,7 +565,9 @@ class FileBrowser(QWidget):
         self.library_search_btn.setIcon(qta.icon("mdi.folder-search-outline", color=THEME.text_primary))
         self.library_search_btn.setFixedSize(28, 28)
         self.library_search_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.library_search_btn.setToolTip("Search the whole library — runs this search across your library folders and loads the matches")
+        self.library_search_btn.setToolTip(
+            tr("Search the whole library — runs this search across your library folders and loads the matches")
+        )
 
         search_row.addWidget(self.search_input)
         search_row.addWidget(self.regex_btn)
@@ -574,7 +580,7 @@ class FileBrowser(QWidget):
         self.thumb_size_slider.setRange(THUMB_CELL_MIN, THUMB_CELL_MAX)
         self.thumb_size_slider.setValue(ThumbnailGridView._clamp_target(int(saved_cell)))
         self.thumb_size_slider.setFixedWidth(72)
-        self.thumb_size_slider.setToolTip("Thumbnail size — smaller fits more columns in the panel")
+        self.thumb_size_slider.setToolTip(tr("Thumbnail size — smaller fits more columns in the panel"))
         search_row.addWidget(self.thumb_size_slider)
         # Above both sections: one box that filters the frames and searches the library, so it
         # belongs to neither and stays reachable when either is folded away.
@@ -605,7 +611,7 @@ class FileBrowser(QWidget):
         self.empty_label.linkActivated.connect(lambda _: self._clear_frame_filters())
 
         self.library_tree = LibraryTree(self.controller)
-        self.library_section = self._make_section("Library", "fa5s.folder-open", self.library_tree, "library_section_expanded")
+        self.library_section = self._make_section(tr("Library"), "fa5s.folder-open", self.library_tree, "library_section_expanded")
 
         frames = QWidget()
         frames_layout = QVBoxLayout(frames)
@@ -614,7 +620,7 @@ class FileBrowser(QWidget):
         frames_layout.addWidget(self.tally_label)
         frames_layout.addWidget(self.list_view, 1)
         frames_layout.addWidget(self.empty_label, 1)
-        self.frames_section = self._make_section("Film Strip", "fa5s.film", frames, "frames_section_expanded")
+        self.frames_section = self._make_section(tr("Film Strip"), "fa5s.film", frames, "frames_section_expanded")
 
         layout.addWidget(self.library_section)
         layout.addWidget(self.frames_section)
@@ -691,7 +697,7 @@ class FileBrowser(QWidget):
         """
         images, _ = folder_counts(path)
         if not images:
-            self.controller.set_status(f"No images directly in “{_folder_label(path)}”", 4000)
+            self.controller.set_status(tr("No images directly in “{folder}”").format(folder=_folder_label(path)), 4000)
             return
         if not self._confirm_load(images, _folder_label(path)):
             return
@@ -710,9 +716,9 @@ class FileBrowser(QWidget):
         loadable = [p for p, n in counted if n]
         total = sum(n for _, n in counted)
         if not loadable:
-            self.controller.set_status("Those folders have no images in them", 4000)
+            self.controller.set_status(tr("Those folders have no images in them"), 4000)
             return
-        if not self._confirm_load(total, f"{len(loadable)} folders"):
+        if not self._confirm_load(total, tr("{count} folders").format(count=len(loadable))):
             return
         self.controller.open_library_folders(loadable, add_to_session=add_to_session)
 
@@ -723,13 +729,16 @@ class FileBrowser(QWidget):
         n = image_count
         box = QMessageBox(self)
         box.setIcon(QMessageBox.Icon.Question)
-        box.setWindowTitle("Load roll")
-        box.setText(f"Load {n} image{'s' if n != 1 else ''} from “{label}”?")
-        box.setInformativeText("They are hashed and thumbnailed on load, which takes a moment on a large roll.")
-        remember = QCheckBox("Always load without asking")
+        box.setWindowTitle(tr("Load roll"))
+        if n == 1:
+            box.setText(tr("Load {n} image from “{label}”?").format(n=n, label=label))
+        else:
+            box.setText(tr("Load {n} images from “{label}”?").format(n=n, label=label))
+        box.setInformativeText(tr("They are hashed and thumbnailed on load, which takes a moment on a large roll."))
+        remember = QCheckBox(tr("Always load without asking"))
         box.setCheckBox(remember)
-        load = box.addButton("Load", QMessageBox.ButtonRole.AcceptRole)
-        box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        load = box.addButton(tr("Load"), QMessageBox.ButtonRole.AcceptRole)
+        box.addButton(tr("Cancel"), QMessageBox.ButtonRole.RejectRole)
         box.exec()
         if box.clickedButton() is not load:
             return False
@@ -771,9 +780,9 @@ class FileBrowser(QWidget):
 
     def _update_unload_button(self) -> None:
         if len(self.session.state.selected_indices) > 1:
-            self.unload_btn.setToolTip("Clear selected")
+            self.unload_btn.setToolTip(tr("Clear selected"))
         else:
-            self.unload_btn.setToolTip("Clear all")
+            self.unload_btn.setToolTip(tr("Clear all"))
 
     def sync_ui(self) -> None:
         """Updates list selection to match session state."""
@@ -898,11 +907,11 @@ class FileBrowser(QWidget):
         model = self.session.asset_model
         names = []
         if model.filter_text:
-            names.append("search")
+            names.append(tr("search"))
         if model.sheet_filter == "keepers":
-            names.append("Keepers")
+            names.append(tr("Keepers"))
         elif model.sheet_filter == "unrejected":
-            names.append("Hide rejected")
+            names.append(tr("Hide rejected"))
         return names
 
     def _update_tally(self) -> None:
@@ -916,13 +925,19 @@ class FileBrowser(QWidget):
         # The strip shows the model, the tally counts the session, so a filter that hides
         # every frame reads as an empty panel under a full count unless it is named here.
         visible = self.session.asset_model.rowCount()
-        text = f"{visible} of {n} frames" if visible != n else f"{n} frame{'s' if n != 1 else ''}"
+        if visible != n:
+            text = tr("{visible} of {n} frames").format(visible=visible, n=n)
+        else:
+            text = tr("{n} frame").format(n=n) if n == 1 else tr("{n} frames").format(n=n)
         for name in self._active_frame_filters():
-            text += f" · {name} filter"
+            text += tr(" · {name} filter").format(name=name)
         if keepers:
-            text += f" · {keepers} keeper{'s' if keepers != 1 else ''}"
+            if keepers == 1:
+                text += tr(" · {keepers} keeper").format(keepers=keepers)
+            else:
+                text += tr(" · {keepers} keepers").format(keepers=keepers)
         if rejected:
-            text += f" · {rejected} rejected"
+            text += tr(" · {rejected} rejected").format(rejected=rejected)
         self.tally_label.setText(text)
         self.tally_label.setVisible(True)
 
@@ -932,9 +947,11 @@ class FileBrowser(QWidget):
         filters = self._active_frame_filters()
         empty = bool(files) and self.session.asset_model.rowCount() == 0 and bool(filters)
         if empty:
-            named = " and ".join(filters)
+            named = tr(" and ").join(filters)
             self.empty_label.setText(
-                f'No frames match the {named} filter.<br><a href="#clear" style="color: {THEME.accent_primary};">Show all frames</a>'
+                tr('No frames match the {named} filter.<br><a href="#clear" style="color: {color};">Show all frames</a>').format(
+                    named=named, color=THEME.accent_primary
+                )
             )
         self.empty_label.setVisible(empty)
         self.list_view.setVisible(not empty)
@@ -1046,9 +1063,9 @@ class FileBrowser(QWidget):
         start_dir = last_open_folder(self.session.repo)
         files, _ = QFileDialog.getOpenFileNames(
             self,
-            "Select Images",
+            tr("Select Images"),
             start_dir,
-            f"Supported Images ({wildcards})",
+            tr("Supported Images ({wildcards})").format(wildcards=wildcards),
         )
         if files:
             self.session.repo.save_global_setting("last_open_folder", os.path.dirname(files[0]))
@@ -1057,7 +1074,7 @@ class FileBrowser(QWidget):
     def prompt_add_folder(self) -> None:
         """Public entry point: also driven by the canvas empty state."""
         start_dir = last_open_folder(self.session.repo)
-        folder = QFileDialog.getExistingDirectory(self, "Select Folder", start_dir)
+        folder = QFileDialog.getExistingDirectory(self, tr("Select Folder"), start_dir)
         if folder:
             self.session.repo.save_global_setting("last_open_folder", os.path.dirname(folder))
             self.open_or_browse(folder)
@@ -1075,9 +1092,11 @@ class FileBrowser(QWidget):
             self.controller.request_asset_discovery([folder], auto_open=True, announce_rgb=True)
         elif subfolders:
             self.browse_requested.emit(folder)
-            self.controller.set_status(f"No images directly in that folder — showing its {subfolders} subfolders", 5000)
+            self.controller.set_status(
+                tr("No images directly in that folder — showing its {subfolders} subfolders").format(subfolders=subfolders), 5000
+            )
         else:
-            self.controller.set_status("That folder has no images in it", 4000)
+            self.controller.set_status(tr("That folder has no images in it"), 4000)
 
     def _activate_file(self, index) -> None:
         """Load a thumbnail into the main viewer, skipping a redundant reload of the
@@ -1153,10 +1172,10 @@ class FileBrowser(QWidget):
         """Mirrors the panel toolbar's add/clear tools, for a right click on empty space."""
         icon_color = THEME.text_primary
         menu = QMenu(self)
-        menu.addAction(qta.icon("fa5s.file-import", color=icon_color), "Add files…").triggered.connect(self.prompt_add_files)
-        menu.addAction(qta.icon("fa5s.folder-plus", color=icon_color), "Add folder…").triggered.connect(self.prompt_add_folder)
+        menu.addAction(qta.icon("fa5s.file-import", color=icon_color), tr("Add files…")).triggered.connect(self.prompt_add_files)
+        menu.addAction(qta.icon("fa5s.folder-plus", color=icon_color), tr("Add folder…")).triggered.connect(self.prompt_add_folder)
         menu.addSeparator()
-        clear = menu.addAction(qta.icon("fa5s.times-circle", color=icon_color), "Clear all")
+        clear = menu.addAction(qta.icon("fa5s.times-circle", color=icon_color), tr("Clear all"))
         clear.triggered.connect(self._on_clear_all)
         clear.setEnabled(bool(self.session.state.uploaded_files))
         return menu
@@ -1167,48 +1186,56 @@ class FileBrowser(QWidget):
 
         menu = QMenu(self)
         if multi:
-            menu.addAction("Export selected frames").triggered.connect(lambda: self.controller.request_export_selected())
+            menu.addAction(tr("Export selected frames")).triggered.connect(lambda: self.controller.request_export_selected())
         else:
-            menu.addAction("Export current frame").triggered.connect(lambda: self.controller.request_export())
+            menu.addAction(tr("Export current frame")).triggered.connect(lambda: self.controller.request_export())
         menu.addSeparator()
-        menu.addAction(label_with_shortcut("Copy Settings", "copy")).triggered.connect(self.session.copy_settings)
-        menu.addAction(label_with_shortcut("Copy Settings + Bounds", "copy_with_bounds")).triggered.connect(
+        menu.addAction(label_with_shortcut(tr("Copy Settings"), "copy")).triggered.connect(self.session.copy_settings)
+        menu.addAction(label_with_shortcut(tr("Copy Settings + Bounds"), "copy_with_bounds")).triggered.connect(
             self.session.copy_settings_with_bounds
         )
-        act_paste = menu.addAction(label_with_shortcut("Paste Settings", "paste"))
+        act_paste = menu.addAction(label_with_shortcut(tr("Paste Settings"), "paste"))
         act_paste.triggered.connect(lambda: open_paste_dialog(self, self.controller))
         act_paste.setEnabled(state.clipboard is not None)
-        menu.addAction("Reset Settings").triggered.connect(self.session.reset_settings)
+        menu.addAction(tr("Reset Settings")).triggered.connect(self.session.reset_settings)
         menu.addSeparator()
         targets = [i for i in (state.selected_indices or [state.selected_file_idx]) if 0 <= i < len(state.uploaded_files)]
         n = len(targets)
-        act_keep = menu.addAction(f"Keep {count_of(n, 'frame')}" if multi else "Keep")
+        if multi:
+            keep = tr("Keep {count} frame") if n == 1 else tr("Keep {count} frames")
+            act_keep = menu.addAction(keep.format(count=n))
+        else:
+            act_keep = menu.addAction(tr("Keep"))
         act_keep.setCheckable(True)
         act_keep.setChecked(bool(targets) and all(state.uploaded_files[i].get("keeper") for i in targets))
         act_keep.triggered.connect(lambda: self.session.toggle_mark("keeper"))
-        act_reject = menu.addAction(f"Reject {count_of(n, 'frame')}" if multi else "Reject")
+        if multi:
+            reject = tr("Reject {count} frame") if n == 1 else tr("Reject {count} frames")
+            act_reject = menu.addAction(reject.format(count=n))
+        else:
+            act_reject = menu.addAction(tr("Reject"))
         act_reject.setCheckable(True)
         act_reject.setChecked(bool(targets) and all(state.uploaded_files[i].get("excluded") for i in targets))
         act_reject.triggered.connect(lambda: self.session.toggle_mark("excluded"))
         menu.addSeparator()
-        menu.addAction("Apply settings…").triggered.connect(self._open_apply_dialog)
+        menu.addAction(tr("Apply settings…")).triggered.connect(self._open_apply_dialog)
         if multi:
             menu.addSeparator()
-            menu.addAction("Stitch selected frames").triggered.connect(lambda: self.controller.request_stitch_selected())
+            menu.addAction(tr("Stitch selected frames")).triggered.connect(lambda: self.controller.request_stitch_selected())
             self._add_hdr_merge_action(menu, state)
         else:
             menu.addSeparator()
-            menu.addAction("Edit RGB Triplet…").triggered.connect(self._on_edit_triplet)
+            menu.addAction(tr("Edit RGB Triplet…")).triggered.connect(self._on_edit_triplet)
             active = state.uploaded_files[state.selected_file_idx] if 0 <= state.selected_file_idx < len(state.uploaded_files) else {}
             if active.get("stitch_paths"):
-                menu.addAction("Unstitch").triggered.connect(lambda: self.controller.request_unstitch())
+                menu.addAction(tr("Unstitch")).triggered.connect(lambda: self.controller.request_unstitch())
             if active.get("hdr_paths"):
                 self._add_hdr_anchor_menu(menu, active)
-                menu.addAction("Unmerge exposures").triggered.connect(lambda: self.controller.request_unmerge_hdr())
+                menu.addAction(tr("Unmerge exposures")).triggered.connect(lambda: self.controller.request_unmerge_hdr())
             if active.get("diptych"):
-                menu.addAction("Unsplit diptych").triggered.connect(self.prompt_undiptych)
+                menu.addAction(tr("Unsplit diptych")).triggered.connect(self.prompt_undiptych)
         menu.addSeparator()
-        unload_label = "Unload Selected" if multi else "Unload"
+        unload_label = tr("Unload Selected") if multi else tr("Unload")
         menu.addAction(unload_label).triggered.connect(self._on_remove_from_menu)
         return menu
 
@@ -1216,11 +1243,11 @@ class FileBrowser(QWidget):
         """Confirm before the halves' edits go, then hand the frame back as one plain scan."""
         box = QMessageBox(self)
         box.setIcon(QMessageBox.Icon.Warning)
-        box.setWindowTitle("Unsplit diptych")
-        box.setText("Turn this diptych back into one plain frame?")
-        box.setInformativeText("Both halves' edits are deleted. Splitting the scan again starts from defaults.")
-        unsplit = box.addButton("Unsplit", QMessageBox.ButtonRole.AcceptRole)
-        box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        box.setWindowTitle(tr("Unsplit diptych"))
+        box.setText(tr("Turn this diptych back into one plain frame?"))
+        box.setInformativeText(tr("Both halves' edits are deleted. Splitting the scan again starts from defaults."))
+        unsplit = box.addButton(tr("Unsplit"), QMessageBox.ButtonRole.AcceptRole)
+        box.addButton(tr("Cancel"), QMessageBox.ButtonRole.RejectRole)
         box.exec()
         if box.clickedButton() is unsplit:
             self.controller.request_undiptych()
@@ -1247,10 +1274,10 @@ class FileBrowser(QWidget):
             mode = ProcessMode(assets[idx].get("process_mode") or mode)
         if mode == ProcessMode.C41:
             return
-        act = menu.addAction("Merge exposures (HDR)")
+        act = menu.addAction(tr("Merge exposures (HDR)"))
         if mode == ProcessMode.BW:
             act.setEnabled(False)
-            act.setToolTip("Merging is for transparencies; black-and-white reversal film is not supported yet")
+            act.setToolTip(tr("Merging is for transparencies; black-and-white reversal film is not supported yet"))
             return
         act.triggered.connect(lambda: self.controller.request_hdr_merge_selected())
 
@@ -1273,8 +1300,8 @@ class FileBrowser(QWidget):
         if len(choices) < 2:
             return  # only the reference is reachable: every entry would be the same picture
         current = str(asset.get("hdr_anchor", "") or "")
-        sub = menu.addMenu("Render exposure")
-        auto = sub.addAction("Bracket middle (auto)")
+        sub = menu.addMenu(tr("Render exposure"))
+        auto = sub.addAction(tr("Bracket middle (auto)"))
         auto.setCheckable(True)
         auto.setChecked(not current)
         auto.triggered.connect(lambda: self.controller.set_hdr_anchor(""))
@@ -1282,7 +1309,7 @@ class FileBrowser(QWidget):
         for path, stops in choices:
             label = f"{os.path.basename(path)}   {stops:+.1f} EV"
             if stops == 0.0:
-                label += "  (as captured)"
+                label += tr("  (as captured)")
             act = sub.addAction(label)
             act.setCheckable(True)
             act.setChecked(path == current)
@@ -1330,23 +1357,23 @@ class _RgbTripletDialog(QDialog):
     def __init__(self, parent, red: str, green: str, blue: str, align: bool = True, start_dir: str = "") -> None:
         super().__init__(parent)
         self._start_dir = start_dir
-        self.setWindowTitle("Edit RGB Triplet")
+        self.setWindowTitle(tr("Edit RGB Triplet"))
         layout = QVBoxLayout(self)
         self._edits: dict[str, QLineEdit] = {}
-        for label, path in (("Red", red), ("Green", green), ("Blue", blue)):
+        for key, label, path in (("Red", tr("Red"), red), ("Green", tr("Green"), green), ("Blue", tr("Blue"), blue)):
             row = QHBoxLayout()
             row.addWidget(QLabel(label, minimumWidth=48))
             edit = QLineEdit(path)
             row.addWidget(edit, 1)
-            browse = QPushButton("Browse…")
+            browse = QPushButton(tr("Browse…"))
             browse.clicked.connect(lambda _=False, e=edit: self._browse(e))
             row.addWidget(browse)
             layout.addLayout(row)
-            self._edits[label] = edit
+            self._edits[key] = edit
 
-        self._align = QCheckBox("Align channels (sub-pixel)")
+        self._align = QCheckBox(tr("Align channels (sub-pixel)"))
         self._align.setChecked(align)
-        self._align.setToolTip("Register green/blue to the red exposure to remove fringing from capture drift.")
+        self._align.setToolTip(tr("Register green/blue to the red exposure to remove fringing from capture drift."))
         layout.addWidget(self._align)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
@@ -1359,7 +1386,10 @@ class _RgbTripletDialog(QDialog):
         # are shot in one go and live together.
         siblings = [self._edits[label].text() for label in ("Red", "Green", "Blue")]
         start = pick_start_dir(edit.text(), *siblings, self._start_dir)
-        path, _ = QFileDialog.getOpenFileName(self, "Select exposure", start, f"Supported Images ({get_supported_raw_wildcards()})")
+        wildcards = get_supported_raw_wildcards()
+        path, _ = QFileDialog.getOpenFileName(
+            self, tr("Select exposure"), start, tr("Supported Images ({wildcards})").format(wildcards=wildcards)
+        )
         if path:
             edit.setText(path)
 

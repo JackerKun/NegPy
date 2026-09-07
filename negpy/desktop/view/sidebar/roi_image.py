@@ -13,6 +13,7 @@ from PyQt6.QtCore import QPoint, QRect, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QMouseEvent, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import QLabel, QSizePolicy
 
+from negpy.kernel.system.i18n import tr
 from negpy.services.capture.calibration import Roi
 
 _CLICK_SLOP = 5  # px: a release within this of the press counts as a click (scan pop-up magnifier)
@@ -159,7 +160,7 @@ class RoiImageLabel(QLabel):
                 self._paint_spinner(painter)
             elif self.roi_mode:  # calibration window: guide the user to pick the film base
                 painter.setPen(QColor("#888780"))
-                painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Live View → click the clear film base")
+                painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, tr("Live View → click the clear film base"))
         painter.end()
 
     def _paint_spinner(self, painter: QPainter) -> None:
@@ -173,7 +174,7 @@ class RoiImageLabel(QLabel):
         # drawArc angles are 1/16°; sweep a 90° arc rotating with _spin_angle.
         painter.drawArc(QRectF(cx - r, cy - r, 2 * r, 2 * r), -self._spin_angle * 16, 90 * 16)
         painter.setPen(QColor("#888780"))
-        painter.drawText(QRect(0, int(cy + r + 6), self.width(), 22), Qt.AlignmentFlag.AlignHCenter, "Loading live view…")
+        painter.drawText(QRect(0, int(cy + r + 6), self.width(), 22), Qt.AlignmentFlag.AlignHCenter, tr("Loading live view…"))
 
     @staticmethod
     def _roi_in_widget(roi, draw_rect: QRect) -> QRect:

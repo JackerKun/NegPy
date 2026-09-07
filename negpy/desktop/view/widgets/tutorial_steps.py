@@ -772,7 +772,7 @@ def build(window: "MainWindow") -> list[TutorialStep]:
                 "Scan tab drives the body and Scanlight directly (macOS/Linux). See "
                 "<code>docs/CAMERA_SCANNING.md</code>.<br>"
                 "• See <code>docs/USER_GUIDE.md</code> for the full reference.<br>"
-                f"• <b>Preferences</b> (⋯ menu, or <b>{display_key(key_for('open_preferences'))}</b>) holds "
+                "• <b>Preferences</b> (⋯ menu, or <b>{prefs_key}</b>) holds "
                 "the app-wide settings: "
                 "interface, performance budgets and storage. For GPU or rendering trouble that "
                 "stops the app starting, edit <code>Documents/NegPy/override.toml</code>.<br>"
@@ -781,5 +781,6 @@ def build(window: "MainWindow") -> list[TutorialStep]:
             ),
             target=lambda w: None,
             pre_hook=lambda w: w.right_panel.show_tab_by_key("setup"),
+            body_kwargs={"prefs_key": display_key(key_for("open_preferences"))},
         ),
     ]

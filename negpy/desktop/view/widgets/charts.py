@@ -14,6 +14,7 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import QSizePolicy, QWidget
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 _CLIP_THRESH = 0.005  # fraction of pixels considered "clipping"
 
@@ -610,9 +611,9 @@ class PhotometricCurveWidget(QWidget):
             painter.fillRect(self._log_rect.adjusted(1, 1, -1, -1), QBrush(highlight))
 
         painter.setPen(QPen(active if not self._log_scale else inactive))
-        painter.drawText(self._lin_rect, Qt.AlignmentFlag.AlignCenter, "LIN")
+        painter.drawText(self._lin_rect, Qt.AlignmentFlag.AlignCenter, tr("LIN"))
         painter.setPen(QPen(active if self._log_scale else inactive))
-        painter.drawText(self._log_rect, Qt.AlignmentFlag.AlignCenter, "LOG")
+        painter.drawText(self._log_rect, Qt.AlignmentFlag.AlignCenter, tr("LOG"))
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -770,7 +771,8 @@ class ZoneStripWidget(QWidget):
     def mouseMoveEvent(self, event) -> None:
         if self._occ is not None and self.width() > 0:
             cell = self._cell_at(event.position().x())
-            self.setToolTip(f"Zone {self._LABELS[cell]} — {float(self._occ[cell]) * 100:.1f}% · click to place a tone here")
+            pct = f"{float(self._occ[cell]) * 100:.1f}%"
+            self.setToolTip(tr("Zone {zone} — {pct} · click to place a tone here").format(zone=self._LABELS[cell], pct=pct))
             self.setCursor(Qt.CursorShape.PointingHandCursor)
         else:
             self.unsetCursor()
@@ -858,7 +860,8 @@ class StepWedgeWidget(QWidget):
         if self._enc is not None and self.width() > 0:
             n = len(self._enc)
             step = int(min(max(event.position().x() / self.width() * n, 0), n - 1))
-            self.setToolTip(f"Step {step} — density {step * self._step_d:.2f}")
+            density = f"{step * self._step_d:.2f}"
+            self.setToolTip(tr("Step {step} — density {density}").format(step=step, density=density))
         super().mouseMoveEvent(event)
 
     def _patch_bounds(self) -> list:

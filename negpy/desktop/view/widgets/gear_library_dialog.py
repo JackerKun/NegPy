@@ -52,6 +52,7 @@ from negpy.features.metadata.gear_models import (
     ScanSetup,
 )
 from negpy.features.metadata.models import FORMAT_OPTIONS, PUSH_PULL_LABELS, PUSH_PULL_VALUES, format_label, format_value
+from negpy.kernel.system.i18n import tr
 from negpy.desktop.view.widgets.searchable_gear_combo import SearchableGearCombo
 from negpy.services.assets.gear import GearProfiles
 from negpy.services.assets.presets import MetadataPresets, is_valid_preset_name, preset_fields, preset_notes, with_preset_notes
@@ -114,7 +115,7 @@ class GearLibraryDialog(QDialog):
         self._list_items: list = []
         self._updating = False
 
-        self.setWindowTitle("Library")
+        self.setWindowTitle(tr("Library"))
         self.resize(820, 560)
         self._init_ui()
         self._select_category("cameras")
@@ -134,13 +135,13 @@ class GearLibraryDialog(QDialog):
         left_layout = QVBoxLayout(left)
         left_layout.setContentsMargins(8, 8, 8, 8)
 
-        cat_label = QLabel("LIBRARY")
+        cat_label = QLabel(tr("LIBRARY"))
         cat_label.setStyleSheet(pane_header_qss())
         left_layout.addWidget(cat_label)
 
         self.category_list = QListWidget()
         for key, label in _CATEGORIES:
-            self.category_list.addItem(QListWidgetItem(label))
+            self.category_list.addItem(QListWidgetItem(tr(label)))
         self.category_list.setProperty("keys", [k for k, _ in _CATEGORIES])
         self.category_list.currentRowChanged.connect(self._on_category_changed)
         left_layout.addWidget(self.category_list)
@@ -153,12 +154,12 @@ class GearLibraryDialog(QDialog):
         mid_layout = QVBoxLayout(mid)
         mid_layout.setContentsMargins(8, 8, 8, 8)
 
-        self.items_label = QLabel("ITEMS")
+        self.items_label = QLabel(tr("ITEMS"))
         self.items_label.setStyleSheet(pane_header_qss())
         mid_layout.addWidget(self.items_label)
 
         self.item_search = QLineEdit()
-        self.item_search.setPlaceholderText("Search cameras…")
+        self.item_search.setPlaceholderText(tr("Search cameras…"))
         self.item_search.textChanged.connect(self._on_item_search_changed)
         mid_layout.addWidget(self.item_search)
 
@@ -169,19 +170,19 @@ class GearLibraryDialog(QDialog):
         btn_row = QHBoxLayout()
         self.add_btn = QPushButton()
         self.add_btn.setIcon(qta.icon("fa5s.plus", color=THEME.text_primary))
-        self.add_btn.setToolTip("Add item")
+        self.add_btn.setToolTip(tr("Add item"))
         self.add_btn.clicked.connect(self._add_item)
         self.dup_btn = QPushButton()
         self.dup_btn.setIcon(qta.icon("fa5s.copy", color=THEME.text_primary))
-        self.dup_btn.setToolTip("Duplicate")
+        self.dup_btn.setToolTip(tr("Duplicate"))
         self.dup_btn.clicked.connect(self._duplicate_item)
         self.edit_btn = QPushButton()
         self.edit_btn.setIcon(qta.icon("fa5s.pen", color=THEME.text_primary))
-        self.edit_btn.setToolTip("Rename the preset, or change which fields it stores")
+        self.edit_btn.setToolTip(tr("Rename the preset, or change which fields it stores"))
         self.edit_btn.clicked.connect(self._edit_preset)
         self.del_btn = QPushButton()
         self.del_btn.setIcon(qta.icon("fa5s.trash-alt", color=THEME.text_primary))
-        self.del_btn.setToolTip("Delete")
+        self.del_btn.setToolTip(tr("Delete"))
         self.del_btn.clicked.connect(self._delete_item)
         for b in (self.add_btn, self.dup_btn, self.edit_btn, self.del_btn):
             b.setFixedWidth(36)
@@ -216,17 +217,17 @@ class GearLibraryDialog(QDialog):
         self.color_combo = QComboBox()
         self.color_combo.addItems([e.value for e in FilmColorType])
         self.developer_edit = QLineEdit()
-        self.developer_edit.setPlaceholderText("e.g. D-76")
+        self.developer_edit.setPlaceholderText(tr("e.g. D-76"))
         self.push_pull_combo = QComboBox()
-        self.push_pull_combo.addItems([PUSH_PULL_LABELS[v] for v in PUSH_PULL_VALUES])
+        self.push_pull_combo.addItems([tr(PUSH_PULL_LABELS[v]) for v in PUSH_PULL_VALUES])
         self.dilution_edit = QLineEdit()
-        self.dilution_edit.setPlaceholderText("e.g. 1+50, stock")
+        self.dilution_edit.setPlaceholderText(tr("e.g. 1+50, stock"))
         self.dev_time_edit = QLineEdit()
-        self.dev_time_edit.setPlaceholderText(DEV_TIME_HINT)
+        self.dev_time_edit.setPlaceholderText(tr(DEV_TIME_HINT))
         self.dev_temp_edit = QLineEdit()
-        self.dev_temp_edit.setPlaceholderText("e.g. 20")
+        self.dev_temp_edit.setPlaceholderText(tr("e.g. 20"))
         self.scanning_edit = QLineEdit()
-        self.scanning_edit.setPlaceholderText("e.g. DSLR copy-stand scan")
+        self.scanning_edit.setPlaceholderText(tr("e.g. DSLR copy-stand scan"))
         self.notes_edit = QLineEdit()
 
         for w in (
@@ -255,24 +256,24 @@ class GearLibraryDialog(QDialog):
         self.form_layout = QFormLayout(self.form_panel)
         self.form_layout.setSpacing(8)
         self._form_rows: dict[str, tuple[QLabel, QWidget]] = {}
-        self._register_form_row("display_name", "Display name", self.display_name_edit)
-        self._register_form_row("make", "Make", self.make_edit)
-        self._register_form_row("model", "Model", self.model_edit)
-        self._register_form_row("lens_model", "Lens model", self.lens_model_edit)
-        self._register_form_row("focal", "Focal length", self.focal_spin)
-        self._register_form_row("aperture", "Max aperture", self.aperture_spin)
-        self._register_form_row("manufacturer", "Manufacturer", self.manufacturer_edit)
-        self._register_form_row("stock_name", "Stock name", self.stock_name_edit)
-        self._register_form_row("iso", "ISO", self.iso_spin)
-        self._register_form_row("format", "Format", self.format_combo)
-        self._register_form_row("color_type", "Color type", self.color_combo)
-        self._register_form_row("developer", "Developer", self.developer_edit)
-        self._register_form_row("dilution", "Dilution", self.dilution_edit)
-        self._register_form_row("push_pull", "Push / Pull", self.push_pull_combo)
-        self._register_form_row("dev_time", "Time", self.dev_time_edit)
-        self._register_form_row("dev_temp", "Temperature (°C)", self.dev_temp_edit)
-        self._register_form_row("scanning", "Scanning", self.scanning_edit)
-        self._register_form_row("notes", "Notes", self.notes_edit)
+        self._register_form_row("display_name", tr("Display name"), self.display_name_edit)
+        self._register_form_row("make", tr("Make"), self.make_edit)
+        self._register_form_row("model", tr("Model"), self.model_edit)
+        self._register_form_row("lens_model", tr("Lens model"), self.lens_model_edit)
+        self._register_form_row("focal", tr("Focal length"), self.focal_spin)
+        self._register_form_row("aperture", tr("Max aperture"), self.aperture_spin)
+        self._register_form_row("manufacturer", tr("Manufacturer"), self.manufacturer_edit)
+        self._register_form_row("stock_name", tr("Stock name"), self.stock_name_edit)
+        self._register_form_row("iso", tr("ISO"), self.iso_spin)
+        self._register_form_row("format", tr("Format"), self.format_combo)
+        self._register_form_row("color_type", tr("Color type"), self.color_combo)
+        self._register_form_row("developer", tr("Developer"), self.developer_edit)
+        self._register_form_row("dilution", tr("Dilution"), self.dilution_edit)
+        self._register_form_row("push_pull", tr("Push / Pull"), self.push_pull_combo)
+        self._register_form_row("dev_time", tr("Time"), self.dev_time_edit)
+        self._register_form_row("dev_temp", tr("Temperature (°C)"), self.dev_temp_edit)
+        self._register_form_row("scanning", tr("Scanning"), self.scanning_edit)
+        self._register_form_row("notes", tr("Notes"), self.notes_edit)
 
         right_layout.addWidget(self.form_panel)
 
@@ -288,7 +289,7 @@ class GearLibraryDialog(QDialog):
         self._build_preset_form()
         self.preset_fields_layout = QFormLayout()
         self.preset_fields_layout.setSpacing(8)
-        self.preset_empty_label = QLabel("This preset stores nothing.")
+        self.preset_empty_label = QLabel(tr("This preset stores nothing."))
         self.preset_empty_label.setStyleSheet(f"color: {THEME.text_secondary};")
         preset_layout.addWidget(self.preset_name_label)
         preset_layout.addLayout(self.preset_form_layout)
@@ -297,18 +298,18 @@ class GearLibraryDialog(QDialog):
         notes_row = QFormLayout()
         notes_row.setSpacing(8)
         self.preset_notes_edit = QLineEdit()
-        self.preset_notes_edit.setPlaceholderText("Notes for this preset")
+        self.preset_notes_edit.setPlaceholderText(tr("Notes for this preset"))
         self.preset_notes_edit.textChanged.connect(self._on_preset_notes_changed)
-        notes_row.addRow(field_label("Notes"), self.preset_notes_edit)
+        notes_row.addRow(field_label(tr("Notes")), self.preset_notes_edit)
         preset_layout.addLayout(notes_row)
-        preset_layout.addWidget(hint_label("The pen chooses which fields a preset stores; these edit their values."))
+        preset_layout.addWidget(hint_label(tr("The pen chooses which fields a preset stores; these edit their values.")))
         self.preset_panel.setVisible(False)
         right_layout.addWidget(self.preset_panel)
         right_layout.addStretch()
 
         close_row = QHBoxLayout()
         close_row.addStretch()
-        save_btn = QPushButton("Done")
+        save_btn = QPushButton(tr("Done"))
         save_btn.clicked.connect(self.accept)
         close_row.addWidget(save_btn)
         right_layout.addLayout(close_row)
@@ -316,48 +317,48 @@ class GearLibraryDialog(QDialog):
         root.addWidget(right)
 
     def _build_preset_form(self) -> None:
-        self.preset_camera_combo = SearchableGearCombo(placeholder="Search cameras…")
-        self.preset_lens_combo = SearchableGearCombo(placeholder="Search lenses…")
-        self.preset_film_combo = SearchableGearCombo(placeholder="Search film stocks…")
-        self.preset_process_combo = SearchableGearCombo(placeholder="Search processes…")
-        self.preset_scan_combo = SearchableGearCombo(placeholder="Search scan setups…")
+        self.preset_camera_combo = SearchableGearCombo(placeholder=tr("Search cameras…"))
+        self.preset_lens_combo = SearchableGearCombo(placeholder=tr("Search lenses…"))
+        self.preset_film_combo = SearchableGearCombo(placeholder=tr("Search film stocks…"))
+        self.preset_process_combo = SearchableGearCombo(placeholder=tr("Search processes…"))
+        self.preset_scan_combo = SearchableGearCombo(placeholder=tr("Search scan setups…"))
         self.preset_format_combo = QComboBox()
         self.preset_format_combo.addItems(FORMAT_OPTIONS)
         self.preset_format_other_edit = QLineEdit()
-        self.preset_format_other_edit.setPlaceholderText("e.g. 6×7")
+        self.preset_format_other_edit.setPlaceholderText(tr("e.g. 6×7"))
         self.preset_developer_edit = QLineEdit()
-        self.preset_developer_edit.setPlaceholderText("e.g. D-76")
+        self.preset_developer_edit.setPlaceholderText(tr("e.g. D-76"))
         self.preset_dilution_edit = QLineEdit()
-        self.preset_dilution_edit.setPlaceholderText("e.g. 1+50")
+        self.preset_dilution_edit.setPlaceholderText(tr("e.g. 1+50"))
         self.preset_push_combo = QComboBox()
-        self.preset_push_combo.addItems([PUSH_PULL_LABELS[v] for v in PUSH_PULL_VALUES])
+        self.preset_push_combo.addItems([tr(PUSH_PULL_LABELS[v]) for v in PUSH_PULL_VALUES])
         self.preset_time_edit = QLineEdit()
-        self.preset_time_edit.setPlaceholderText(DEV_TIME_HINT)
+        self.preset_time_edit.setPlaceholderText(tr(DEV_TIME_HINT))
         self.preset_temp_edit = QLineEdit()
-        self.preset_temp_edit.setPlaceholderText("e.g. 20")
+        self.preset_temp_edit.setPlaceholderText(tr("e.g. 20"))
         self.preset_scanning_edit = QLineEdit()
-        self.preset_scanning_edit.setPlaceholderText("e.g. DSLR copy-stand scan")
+        self.preset_scanning_edit.setPlaceholderText(tr("e.g. DSLR copy-stand scan"))
         self.preset_roll_edit = QLineEdit()
-        self.preset_roll_edit.setPlaceholderText("e.g. Roll001")
+        self.preset_roll_edit.setPlaceholderText(tr("e.g. Roll001"))
         self.preset_exposure_edit = QLineEdit()
-        self.preset_exposure_edit.setPlaceholderText("e.g. 1/125s f/2.8 ISO 400")
+        self.preset_exposure_edit.setPlaceholderText(tr("e.g. 1/125s f/2.8 ISO 400"))
 
         for key, label, widget in (
-            ("camera", "Camera", self.preset_camera_combo),
-            ("lens", "Lens", self.preset_lens_combo),
-            ("film_stock", "Film stock", self.preset_film_combo),
-            ("format", "Format", self.preset_format_combo),
-            ("format_other", "Other format", self.preset_format_other_edit),
-            ("process", "Saved process", self.preset_process_combo),
-            ("developer", "Developer", self.preset_developer_edit),
-            ("dilution", "Dilution", self.preset_dilution_edit),
-            ("push_pull", "Push / Pull", self.preset_push_combo),
-            ("dev_time", "Time", self.preset_time_edit),
-            ("dev_temp", "Temperature (°C)", self.preset_temp_edit),
-            ("scan_setup", "Saved setup", self.preset_scan_combo),
-            ("scanning", "Scanning", self.preset_scanning_edit),
-            ("roll", "Roll", self.preset_roll_edit),
-            ("exposure", "Exposure", self.preset_exposure_edit),
+            ("camera", tr("Camera"), self.preset_camera_combo),
+            ("lens", tr("Lens"), self.preset_lens_combo),
+            ("film_stock", tr("Film stock"), self.preset_film_combo),
+            ("format", tr("Format"), self.preset_format_combo),
+            ("format_other", tr("Other format"), self.preset_format_other_edit),
+            ("process", tr("Saved process"), self.preset_process_combo),
+            ("developer", tr("Developer"), self.preset_developer_edit),
+            ("dilution", tr("Dilution"), self.preset_dilution_edit),
+            ("push_pull", tr("Push / Pull"), self.preset_push_combo),
+            ("dev_time", tr("Time"), self.preset_time_edit),
+            ("dev_temp", tr("Temperature (°C)"), self.preset_temp_edit),
+            ("scan_setup", tr("Saved setup"), self.preset_scan_combo),
+            ("scanning", tr("Scanning"), self.preset_scanning_edit),
+            ("roll", tr("Roll"), self.preset_roll_edit),
+            ("exposure", tr("Exposure"), self.preset_exposure_edit),
         ):
             row_label = field_label(label)
             self.preset_form_layout.addRow(row_label, widget)
@@ -445,7 +446,7 @@ class GearLibraryDialog(QDialog):
         self._category = _CATEGORIES[row][0]
         self.item_search.blockSignals(True)
         self.item_search.clear()
-        self.item_search.setPlaceholderText(_CATEGORY_SEARCH_PLACEHOLDER.get(self._category, "Search…"))
+        self.item_search.setPlaceholderText(tr(_CATEGORY_SEARCH_PLACEHOLDER.get(self._category, "Search…")))
         self.item_search.blockSignals(False)
         self._rebuild_item_list()
         self._show_form_for_category(self._category)
@@ -454,7 +455,7 @@ class GearLibraryDialog(QDialog):
         self.preset_panel.setVisible(is_presets)
         self.edit_btn.setVisible(is_presets)
         self.add_btn.setEnabled(not is_presets or self._current_config is not None)
-        self.add_btn.setToolTip("Store the current frame's metadata as a preset" if is_presets else "Add item")
+        self.add_btn.setToolTip(tr("Store the current frame's metadata as a preset") if is_presets else tr("Add item"))
 
     def _on_item_search_changed(self, _text: str) -> None:
         self._rebuild_item_list()
@@ -729,7 +730,7 @@ class GearLibraryDialog(QDialog):
         self.presets_changed.emit()
 
     def _clear_form(self) -> None:
-        self.preset_name_label.setText("No preset selected")
+        self.preset_name_label.setText(tr("No preset selected"))
         self._updating = True
         try:
             self.preset_notes_edit.clear()
@@ -821,14 +822,14 @@ class GearLibraryDialog(QDialog):
         if not is_valid_preset_name(name):
             QMessageBox.warning(
                 self,
-                "Preset name",
-                'A preset name cannot contain / \\ : * ? " < > | or start or end with a dot.',
+                tr("Preset name"),
+                tr('A preset name cannot contain / \\ : * ? " < > | or start or end with a dot.'),
             )
             return False
         if name.casefold() == replacing.casefold() or not MetadataPresets.exists(name):
             return True
         return (
-            QMessageBox.question(self, "Replace preset", f"A preset named '{name}' already exists. Replace it?")
+            QMessageBox.question(self, tr("Replace preset"), tr("A preset named '{name}' already exists. Replace it?").format(name=name))
             == QMessageBox.StandardButton.Yes
         )
 
@@ -836,8 +837,10 @@ class GearLibraryDialog(QDialog):
         """A preset is the current frame's metadata, minus the fields left unticked."""
         if self._current_config is None:
             return
-        dlg = GranularSettingsDialog(self, self._current_config, "current metadata", ask_name=True, exclude_sections=NON_METADATA_SECTIONS)
-        dlg.setWindowTitle("New Metadata Preset")
+        dlg = GranularSettingsDialog(
+            self, self._current_config, tr("current metadata"), ask_name=True, exclude_sections=NON_METADATA_SECTIONS
+        )
+        dlg.setWindowTitle(tr("New Metadata Preset"))
         # As when editing: which fields to store is the choice, so every row is on offer.
         dlg.show_unchanged_settings()
         if dlg.exec() != QDialog.DialogCode.Accepted:
@@ -856,7 +859,7 @@ class GearLibraryDialog(QDialog):
             return
         cfg = preset_config(data)
         dlg = GranularSettingsDialog(self, cfg, name, ask_name=True, exclude_sections=NON_METADATA_SECTIONS)
-        dlg.setWindowTitle("Edit Metadata Preset")
+        dlg.setWindowTitle(tr("Edit Metadata Preset"))
         dlg.set_name(name)
         # Editing is about which fields the preset holds, so show every row, default-valued
         # ones included, rather than making the user reveal them to add one.
@@ -932,7 +935,7 @@ class GearLibraryDialog(QDialog):
     def _delete_item(self) -> None:
         if self._selected_idx < 0:
             return
-        if QMessageBox.question(self, "Delete", "Delete this item?") != QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr("Delete"), tr("Delete this item?")) != QMessageBox.StandardButton.Yes:
             return
         if self._category == _PRESETS:
             name = self._selected_preset()

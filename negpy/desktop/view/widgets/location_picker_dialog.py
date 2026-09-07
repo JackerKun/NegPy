@@ -19,6 +19,7 @@ from negpy.desktop.view.styles.templates import field_label, hint_label
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.slippy_map import SlippyMapWidget
 from negpy.features.metadata.capture import format_coords, parse_coords
+from negpy.kernel.system.i18n import tr
 from negpy.services.maps import place_fields, result_coords, reverse_place, search_places
 
 _OFFLINE_HINT = "Map unavailable — enter coordinates manually."
@@ -77,7 +78,7 @@ class LocationPickerDialog(QDialog):
         parent=None,
     ):
         super().__init__(parent)
-        self.setWindowTitle("Capture location")
+        self.setWindowTitle(tr("Capture location"))
         self.setMinimumSize(560, 560)
 
         # The pool is owned by the dialog, so closing it joins any running lookup before the
@@ -95,11 +96,11 @@ class LocationPickerDialog(QDialog):
         root.setSpacing(THEME.space_lg)
 
         root.addWidget(
-            hint_label("Search a place, click the map, or paste coordinates or a map link. Opening this dialog contacts OpenStreetMap.")
+            hint_label(tr("Search a place, click the map, or paste coordinates or a map link. Opening this dialog contacts OpenStreetMap."))
         )
 
         self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("e.g. Tokyo, Japan")
+        self.search_edit.setPlaceholderText(tr("e.g. Tokyo, Japan"))
         self.search_edit.addAction(
             qta.icon("fa5s.search", color=THEME.text_secondary),
             QLineEdit.ActionPosition.LeadingPosition,
@@ -149,7 +150,7 @@ class LocationPickerDialog(QDialog):
                 ("Country", self.country_edit),
             )
         ):
-            fields.addWidget(field_label(label), (column // 2) * 2, column % 2)
+            fields.addWidget(field_label(tr(label)), (column // 2) * 2, column % 2)
             fields.addWidget(widget, (column // 2) * 2 + 1, column % 2)
         root.addLayout(fields)
 
@@ -170,7 +171,7 @@ class LocationPickerDialog(QDialog):
             # place would claim the frame was shot where it was digitized.
             self.map_view.set_center(*center)
             self.map_view.set_zoom(8)
-            self.status_label.setText("Centred on the scan file's coordinates.")
+            self.status_label.setText(tr("Centred on the scan file's coordinates."))
 
     def eventFilter(self, obj, event) -> bool:  # noqa: N802 - Qt override
         """Return in the search field searches; without this the dialog's OK button takes it."""
@@ -213,7 +214,7 @@ class LocationPickerDialog(QDialog):
         query = self.search_edit.text().strip()
         if len(query) < _MIN_QUERY_CHARS:
             return
-        self.status_label.setText("Searching…")
+        self.status_label.setText(tr("Searching…"))
         self._pool.start(_SearchJob(self._signals, query))
 
     def _on_search_done(self, results: object) -> None:
@@ -232,7 +233,7 @@ class LocationPickerDialog(QDialog):
             self.status_label.setText("")
         else:
             self._completer.popup().hide()
-            self.status_label.setText(_NO_MATCH_HINT)
+            self.status_label.setText(tr(_NO_MATCH_HINT))
 
     def _on_suggestion_chosen(self, index: QModelIndex) -> None:
         result = self._results.get(str(index.data()))
@@ -255,7 +256,7 @@ class LocationPickerDialog(QDialog):
     def _on_coords_edited(self) -> None:
         coords = parse_coords(self.coords_edit.text())
         if coords is None:
-            self.status_label.setText("Coordinates not recognised.")
+            self.status_label.setText(tr("Coordinates not recognised."))
             return
         self.coords_edit.setText(format_coords(*coords))
         self.map_view.set_pin(*coords)
@@ -263,14 +264,14 @@ class LocationPickerDialog(QDialog):
 
     def _start_reverse(self, lat: float, lon: float) -> None:
         self._reverse_token += 1
-        self.status_label.setText("Looking up place…")
+        self.status_label.setText(tr("Looking up place…"))
         self._pool.start(_ReverseJob(self._signals, self._reverse_token, lat, lon))
 
     def _on_reverse_done(self, token: int, result: object) -> None:
         if token != self._reverse_token:
             return
         if not isinstance(result, dict):
-            self.status_label.setText(_OFFLINE_HINT)
+            self.status_label.setText(tr(_OFFLINE_HINT))
             return
         self._apply_place(result)
         self.status_label.setText("")

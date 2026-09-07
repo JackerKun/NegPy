@@ -8,13 +8,14 @@ from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPen, QTextOption
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QTextBrowser, QVBoxLayout, QWidget
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 if TYPE_CHECKING:
     from negpy.desktop.view.main_window import MainWindow
 
 
 class TutorialStep:
-    __slots__ = ("title", "body", "target", "section_attr", "pre_hook")
+    __slots__ = ("title", "body", "target", "section_attr", "pre_hook", "body_kwargs")
 
     def __init__(
         self,
@@ -23,12 +24,14 @@ class TutorialStep:
         target: Callable[["MainWindow"], Optional[QWidget]],
         section_attr: str = "",
         pre_hook: Optional[Callable[["MainWindow"], None]] = None,
+        body_kwargs: Optional[dict[str, str]] = None,
     ) -> None:
         self.title = title
         self.body = body
         self.target = target
         self.section_attr = section_attr
         self.pre_hook = pre_hook
+        self.body_kwargs = body_kwargs
 
 
 class TutorialOverlay(QWidget):
@@ -98,22 +101,22 @@ class TutorialOverlay(QWidget):
         )
         layout.addWidget(self._body_lbl)
 
-        self._hint_lbl = QLabel("Enter / → to advance  ·  ← to go back  ·  Esc to dismiss")
+        self._hint_lbl = QLabel(tr("Enter / → to advance  ·  ← to go back  ·  Esc to dismiss"))
         self._hint_lbl.setStyleSheet(f"color: {THEME.text_hint}; font-size: {THEME.font_size_small}px;")
         layout.addWidget(self._hint_lbl)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
 
-        self._prev_btn = QPushButton("← Back")
+        self._prev_btn = QPushButton(tr("← Back"))
         self._prev_btn.clicked.connect(self._prev)
         self._prev_btn.setStyleSheet(self._btn_qss(accent=False, muted=False))
 
-        self._skip_btn = QPushButton("Skip tour")
+        self._skip_btn = QPushButton(tr("Skip tour"))
         self._skip_btn.clicked.connect(self.dismiss)
         self._skip_btn.setStyleSheet(self._btn_qss(accent=False, muted=True))
 
-        self._next_btn = QPushButton("Next →")
+        self._next_btn = QPushButton(tr("Next →"))
         self._next_btn.clicked.connect(self._next)
         self._next_btn.setStyleSheet(self._btn_qss(accent=True, muted=False))
 
@@ -189,9 +192,13 @@ class TutorialOverlay(QWidget):
             self._win.right_panel.scroll_to(target)
 
         total = len(self._steps)
-        self._counter.setText(f"Step {idx + 1} of {total}")
-        self._title_lbl.setText(step.title)
-        self._body_lbl.setHtml(step.body)
+        self._counter.setText(tr("Step {current} of {total}").format(current=idx + 1, total=total))
+        # Titles and bodies stay English in the step list; translation happens here, at display.
+        self._title_lbl.setText(tr(step.title))
+        body = tr(step.body)
+        if step.body_kwargs:
+            body = body.format(**step.body_kwargs)
+        self._body_lbl.setHtml(body)
         doc = self._body_lbl.document()
         if doc is not None:
             doc.setDefaultFont(self._body_lbl.font())
@@ -206,7 +213,7 @@ class TutorialOverlay(QWidget):
             self._body_lbl.setFixedHeight(min(content_h, max_h))
         self._prev_btn.setVisible(idx > 0)
         self._skip_btn.setVisible(idx < total - 1)
-        self._next_btn.setText("Done" if idx == total - 1 else "Next →")
+        self._next_btn.setText(tr("Done") if idx == total - 1 else tr("Next →"))
 
         self._popup.adjustSize()
         self._position_popup(target)

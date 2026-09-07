@@ -1,5 +1,7 @@
 from PyQt6.QtWidgets import QMessageBox
 
+from negpy.kernel.system.i18n import tr
+
 
 def confirm_unload(parent, *, clear_all: bool = False, count: int = 1) -> bool:
     """Ask the user to confirm removing image(s) from the session.
@@ -10,20 +12,20 @@ def confirm_unload(parent, *, clear_all: bool = False, count: int = 1) -> bool:
     prompt. Enter confirms (default button); Esc cancels.
     """
     if clear_all:
-        title = "Clear All"
-        text = "Remove all loaded images from the session?"
+        title = tr("Clear All")
+        text = tr("Remove all loaded images from the session?")
     elif count > 1:
-        title = "Unload Selected"
-        text = f"Unload the {count} selected images from the session?"
+        title = tr("Unload Selected")
+        text = tr("Unload the {count} selected images from the session?").format(count=count)
     else:
-        title = "Unload"
-        text = "Unload this image from the session?"
+        title = tr("Unload")
+        text = tr("Unload this image from the session?")
 
     box = QMessageBox(parent)
     box.setIcon(QMessageBox.Icon.Question)
     box.setWindowTitle(title)
     box.setText(text)
-    box.setInformativeText("Your saved edits stay in the database — this only removes the frames from the list.")
+    box.setInformativeText(tr("Your saved edits stay in the database — this only removes the frames from the list."))
     box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
     box.setDefaultButton(QMessageBox.StandardButton.Yes)
     return box.exec() == QMessageBox.StandardButton.Yes
@@ -36,8 +38,8 @@ def confirm_delete_named(parent, kind: str, name: str, *, informative: str = "")
     """
     box = QMessageBox(parent)
     box.setIcon(QMessageBox.Icon.Question)
-    box.setWindowTitle(f"Delete {kind}")
-    box.setText(f"Delete the {kind.lower()} “{name}”?")
+    box.setWindowTitle(tr("Delete {kind}").format(kind=kind))
+    box.setText(tr("Delete the {kind} “{name}”?").format(kind=kind.lower(), name=name))
     if informative:
         box.setInformativeText(informative)
     box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
@@ -49,8 +51,8 @@ def confirm_delete_mask(parent) -> bool:
     """Ask before deleting a single dodge/burn mask. Enter confirms; Esc cancels."""
     box = QMessageBox(parent)
     box.setIcon(QMessageBox.Icon.Question)
-    box.setWindowTitle("Delete Mask")
-    box.setText("Delete this dodge/burn mask?")
+    box.setWindowTitle(tr("Delete Mask"))
+    box.setText(tr("Delete this dodge/burn mask?"))
     box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
     box.setDefaultButton(QMessageBox.StandardButton.Yes)
     return box.exec() == QMessageBox.StandardButton.Yes
@@ -64,9 +66,10 @@ def confirm_clear_heals(parent, count: int) -> bool:
     """
     box = QMessageBox(parent)
     box.setIcon(QMessageBox.Icon.Question)
-    box.setWindowTitle("Clear All Heals")
-    box.setText(f"Remove all {count} manual heal{'s' if count != 1 else ''} from this image?")
-    box.setInformativeText("Every heal and scratch repair placed on this frame will be removed.")
+    box.setWindowTitle(tr("Clear All Heals"))
+    heal_word = tr("heals") if count != 1 else tr("heal")
+    box.setText(tr("Remove all {count} manual {heal_word} from this image?").format(count=count, heal_word=heal_word))
+    box.setInformativeText(tr("Every heal and scratch repair placed on this frame will be removed."))
     box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
     box.setDefaultButton(QMessageBox.StandardButton.Yes)
     return box.exec() == QMessageBox.StandardButton.Yes

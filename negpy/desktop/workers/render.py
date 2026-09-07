@@ -496,19 +496,32 @@ def rgb_grouping_notice(made: int, loose: int, incomplete: int, mismatched: int,
     """
     if not loose:
         return ""
-    from negpy.kernel.system.text import count_of
+    from negpy.kernel.system.i18n import tr
 
     reasons = []
     if incomplete:
-        reasons.append(f"{count_of(incomplete, 'set')} not one of each color")
+        if incomplete == 1:
+            reasons.append(tr("{n} set not one of each color").format(n=incomplete))
+        else:
+            reasons.append(tr("{n} sets not one of each color").format(n=incomplete))
     if mismatched:
-        reasons.append(f"{count_of(mismatched, 'set')} showing different frames")
-    detail = f" — {', '.join(reasons)}" if reasons else ""
-    order = "" if by_time else "; grouped by filename, as the files state no capture time"
-    made_text = f"{count_of(made, 'frame')} assembled, " if made else ""
+        if mismatched == 1:
+            reasons.append(tr("{n} set showing different frames").format(n=mismatched))
+        else:
+            reasons.append(tr("{n} sets showing different frames").format(n=mismatched))
+    detail = tr(" — {reasons}").format(reasons=", ".join(reasons)) if reasons else ""
+    order = "" if by_time else tr("; grouped by filename, as the files state no capture time")
+    if made:
+        made_text = tr("{n} frame assembled, ").format(n=made) if made == 1 else tr("{n} frames assembled, ").format(n=made)
+    else:
+        made_text = ""
+    loose_text = tr("{n} file").format(n=loose) if loose == 1 else tr("{n} files").format(n=loose)
     return (
-        f"Trichrome Scan: {made_text}{count_of(loose, 'file')} left separate{detail}{order}. "
-        "Right-click a frame and choose Edit RGB Triplet to pair them by hand."
+        tr("Trichrome Scan: {made}{loose} left separate{detail}{order}.").format(
+            made=made_text, loose=loose_text, detail=detail, order=order
+        )
+        + " "
+        + tr("Right-click a frame and choose Edit RGB Triplet to pair them by hand.")
     )
 
 
@@ -519,33 +532,38 @@ def rgb_nothing_matched_message(summary: dict) -> tuple[str, str]:
     that could not be ordered, and the user needs the requirements. A folder lit the
     same way throughout is not trichrome at all, and the user needs the mode off.
     """
-    from negpy.kernel.system.text import count_of
+    from negpy.kernel.system.i18n import tr
 
-    files = count_of(summary.get("loose", 0), "file")
+    n = summary.get("loose", 0)
+    files = tr("{n} file").format(n=n) if n == 1 else tr("{n} files").format(n=n)
     if not summary.get("narrowband"):
         return (
-            "Nothing to assemble",
-            f"Trichrome Scan is on, but this folder does not look like trichrome captures: its {files} were all "
-            "lit the same way, so there are no red, green and blue sets to combine.\n\n"
-            "Turn Trichrome Scan off to work with them as ordinary frames.",
+            tr("Nothing to assemble"),
+            tr(
+                "Trichrome Scan is on, but this folder does not look like trichrome captures: its {files} were all "
+                "lit the same way, so there are no red, green and blue sets to combine.\n\n"
+                "Turn Trichrome Scan off to work with them as ordinary frames."
+            ).format(files=files),
         )
     # Filenames only stop mattering once the files date themselves; without that they
     # carry the capture order and the claim would contradict the fallback.
     if summary.get("by_time"):
-        naming = "Which of the three colors you shoot first does not matter, and filenames do not matter."
+        naming = tr("Which of the three colors you shoot first does not matter, and filenames do not matter.")
     else:
-        naming = (
+        naming = tr(
             "Which of the three colors you shoot first does not matter. These files record no capture "
             "time, so they were put in filename order — which means their names have to sort into the "
             "order the shots were taken."
         )
     return (
-        "No triplets found",
-        f"None of the {files} in this folder could be assembled into RGB triplets.\n\n"
-        "Each frame needs three captures — one under red light, one under green, one under blue — "
-        "taken back to back before you move on to the next frame, and the folder should hold "
-        f"nothing else. {naming}\n\n"
-        "You can also pair files by hand: right-click a frame and choose Edit RGB Triplet.",
+        tr("No triplets found"),
+        tr(
+            "None of the {files} in this folder could be assembled into RGB triplets.\n\n"
+            "Each frame needs three captures — one under red light, one under green, one under blue — "
+            "taken back to back before you move on to the next frame, and the folder should hold "
+            "nothing else. {naming}\n\n"
+            "You can also pair files by hand: right-click a frame and choose Edit RGB Triplet."
+        ).format(files=files, naming=naming),
     )
 
 

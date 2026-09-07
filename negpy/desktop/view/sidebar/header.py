@@ -12,6 +12,7 @@ from PyQt6.QtGui import QPixmap
 from negpy.desktop.controller import AppController
 from negpy.desktop.view.shortcut_registry import tooltip_with_shortcut
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.paths import get_resource_path
 from negpy.kernel.system.version import get_app_version
 
@@ -109,10 +110,10 @@ class SidebarHeader(QWidget):
         """Swap the version button between "check now" and "an update is waiting"."""
         if available:
             self.update_button.setIcon(qta.icon("fa5s.download", color=THEME.status_success))
-            self.update_button.setToolTip("An update is ready — click to install it")
+            self.update_button.setToolTip(tr("An update is ready — click to install it"))
         else:
             self.update_button.setIcon(qta.icon("fa5s.sync-alt", color=THEME.text_muted))
-            self.update_button.setToolTip(tooltip_with_shortcut("Check for updates", "check_for_updates"))
+            self.update_button.setToolTip(tooltip_with_shortcut(tr("Check for updates"), "check_for_updates"))
         self.update_button.setEnabled(True)
 
     def set_checking(self) -> None:
@@ -121,7 +122,7 @@ class SidebarHeader(QWidget):
         ``set_update_state`` re-enables it once the answer is in.
         """
         self.update_button.setEnabled(False)
-        self.update_button.setToolTip("Checking…")
+        self.update_button.setToolTip(tr("Checking…"))
 
     def is_expanded(self) -> bool:
         return self.toggle_button.isChecked()
@@ -134,5 +135,5 @@ class SidebarHeader(QWidget):
             self.toggle_button.blockSignals(False)
         self.body.setVisible(expanded)
         self.toggle_button.setIcon(qta.icon("fa5s.chevron-up" if expanded else "fa5s.chevron-down", color=THEME.text_muted))
-        self.toggle_button.setToolTip("Hide the NegPy logo and version" if expanded else "Show the NegPy logo and version")
+        self.toggle_button.setToolTip(tr("Hide the NegPy logo and version") if expanded else tr("Show the NegPy logo and version"))
         self.expanded_changed.emit(expanded)

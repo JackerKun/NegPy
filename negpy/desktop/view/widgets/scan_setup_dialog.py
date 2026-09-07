@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 from negpy.desktop.view.styles.templates import hint_label, pane_header_qss
 from negpy.desktop.view.styles.theme import THEME
 from negpy.features.process.models import scan_setup_values
+from negpy.kernel.system.i18n import tr
 
 _CAPTURE = (
     ("camera", "Digital camera", "A camera on a copy stand shooting the negative over a light source"),
@@ -42,7 +43,7 @@ class ScanSetupDialog(QDialog):
         self._capture = str((saved or {}).get("capture") or "camera")
         self._light = str((saved or {}).get("light") or "white")
 
-        self.setWindowTitle("Scanning Setup")
+        self.setWindowTitle(tr("Scanning Setup"))
         self.setMinimumWidth(460)
 
         root = QVBoxLayout(self)
@@ -68,16 +69,16 @@ class ScanSetupDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(THEME.space_md)
 
-        title = QLabel("HOW DO YOU SCAN?")
+        title = QLabel(tr("HOW DO YOU SCAN?"))
         title.setStyleSheet(pane_header_qss())
         layout.addWidget(title)
 
         for i, (key, label, blurb) in enumerate(_CAPTURE):
-            btn = QRadioButton(label)
+            btn = QRadioButton(tr(label))
             btn.setChecked(key == self._capture)
             self.capture_group.addButton(btn, i)
             layout.addWidget(btn)
-            layout.addWidget(hint_label(blurb))
+            layout.addWidget(hint_label(tr(blurb)))
         self.capture_group.idToggled.connect(lambda i, on: self._set_capture(_CAPTURE[i][0]) if on else None)
         layout.addStretch()
         return page
@@ -88,7 +89,7 @@ class ScanSetupDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(THEME.space_md)
 
-        title = QLabel("WHAT LIGHT SOURCE?")
+        title = QLabel(tr("WHAT LIGHT SOURCE?"))
         title.setStyleSheet(pane_header_qss())
         layout.addWidget(title)
 
@@ -108,11 +109,11 @@ class ScanSetupDialog(QDialog):
 
     def _build_footer(self) -> QHBoxLayout:
         row = QHBoxLayout()
-        self.back_btn = QPushButton("← Back")
+        self.back_btn = QPushButton(tr("← Back"))
         self.back_btn.clicked.connect(self._back)
         row.addWidget(self.back_btn)
         row.addStretch()
-        cancel = QPushButton("Cancel")
+        cancel = QPushButton(tr("Cancel"))
         cancel.clicked.connect(self.reject)
         self.next_btn = QPushButton()
         self.next_btn.setProperty("primary", True)
@@ -144,21 +145,24 @@ class ScanSetupDialog(QDialog):
         """Re-label the light page for the chosen capture and refresh the footer/summary."""
         options = _LIGHT[self._capture]
         for i, (key, label, blurb) in enumerate(options):
-            self.light_buttons[i].setText(label)
-            self.light_hints[i].setText(blurb)
+            self.light_buttons[i].setText(tr(label))
+            self.light_hints[i].setText(tr(blurb))
             self.light_buttons[i].blockSignals(True)
             self.light_buttons[i].setChecked(key == self._light)
             self.light_buttons[i].blockSignals(False)
 
         on_light_page = self.pages.currentIndex() == 1
         self.back_btn.setVisible(on_light_page)
-        self.next_btn.setText("Apply" if on_light_page else "Next →")
+        self.next_btn.setText(tr("Apply") if on_light_page else tr("Next →"))
         linear_raw, narrowband = scan_setup_values(self._capture, self._light)
-        self.summary.setText(
-            f"Sets Linear RAW {'on' if linear_raw else 'off'} · Narrowband {'on' if narrowband else 'off'}"
-            if on_light_page
-            else "Two questions — they set Linear RAW and Narrowband for your rig."
-        )
+        if on_light_page:
+            summary = tr("Sets Linear RAW {linear} · Narrowband {narrowband}").format(
+                linear=tr("on") if linear_raw else tr("off"),
+                narrowband=tr("on") if narrowband else tr("off"),
+            )
+        else:
+            summary = tr("Two questions — they set Linear RAW and Narrowband for your rig.")
+        self.summary.setText(summary)
 
     def choice(self) -> dict:
         return {"capture": self._capture, "light": self._light}

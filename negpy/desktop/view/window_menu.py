@@ -22,6 +22,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMenu, QWidget
 
+from negpy.kernel.system.i18n import tr
+
 # Qt swaps Ctrl and Meta on macOS, so "Ctrl+M" is ⌘M.
 MENU_KEYS: dict[str, str] = {
     "minimize": "Ctrl+M",
@@ -57,16 +59,16 @@ class WindowMenu(QMenu):
     """
 
     def __init__(self, window: QMainWindow, parent: Optional[QWidget] = None) -> None:
-        super().__init__("Window", parent if parent is not None else window)
+        super().__init__(tr("Window"), parent if parent is not None else window)
         self._window = window
         self._dynamic: list[QAction] = []
 
-        self.act_minimize = self._add("Minimize", MENU_KEYS["minimize"], self._minimize)
-        self.act_zoom = self._add("Zoom", "", self._zoom)
+        self.act_minimize = self._add(tr("Minimize"), MENU_KEYS["minimize"], self._minimize)
+        self.act_zoom = self._add(tr("Zoom"), "", self._zoom)
         self.addSeparator()
-        self.act_close = self._add("Close", MENU_KEYS["close"], self._close)
+        self.act_close = self._add(tr("Close"), MENU_KEYS["close"], self._close)
         self.addSeparator()
-        self.act_bring_all = self._add("Bring All to Front", "", self._bring_all_to_front)
+        self.act_bring_all = self._add(tr("Bring All to Front"), "", self._bring_all_to_front)
         self._list_separator = self.addSeparator()
 
         self.aboutToShow.connect(self.refresh)

@@ -22,6 +22,7 @@ from negpy.desktop.view.sidebar.live_view_window import SettingStepper
 from negpy.desktop.view.sidebar.roi_image import RoiImageLabel
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.floating_panel import float_over_app
+from negpy.kernel.system.i18n import tr
 
 
 class CalibrationWindow(QDialog):
@@ -32,19 +33,19 @@ class CalibrationWindow(QDialog):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("New preset — calibrate on the film base")
+        self.setWindowTitle(tr("New preset — calibrate on the film base"))
         self.setModal(False)
         float_over_app(self)
         self.resize(820, 680)
         layout = QVBoxLayout(self)
 
         name_row = QHBoxLayout()
-        name_row.addWidget(QLabel("Film stock"))
+        name_row.addWidget(QLabel(tr("Film stock")))
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText("e.g. Portra 400")
+        self.name_edit.setPlaceholderText(tr("e.g. Portra 400"))
         name_row.addWidget(self.name_edit, 1)
-        self.calibrate_btn = QPushButton(qta.icon("fa5s.crosshairs", color=THEME.text_primary), " Calibrate & Save")
-        self.calibrate_btn.setToolTip("Meter the clicked film base and save the result as this preset")
+        self.calibrate_btn = QPushButton(qta.icon("fa5s.crosshairs", color=THEME.text_primary), tr(" Calibrate & Save"))
+        self.calibrate_btn.setToolTip(tr("Meter the clicked film base and save the result as this preset"))
         name_row.addWidget(self.calibrate_btn)
         layout.addLayout(name_row)
 
@@ -59,8 +60,8 @@ class CalibrationWindow(QDialog):
         self.iso_stepper = SettingStepper()
         self.aperture_stepper = SettingStepper()
         for tag_text, stepper, tip in (
-            ("ISO", self.iso_stepper, "ISO — use what you will scan with"),
-            ("Aperture", self.aperture_stepper, "Aperture (needs an electronically controlled lens)"),
+            (tr("ISO"), self.iso_stepper, tr("ISO — use what you will scan with")),
+            (tr("Aperture"), self.aperture_stepper, tr("Aperture (needs an electronically controlled lens)")),
         ):
             tag = QLabel(tag_text)
             tag.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -74,7 +75,7 @@ class CalibrationWindow(QDialog):
         layout.addLayout(settings_row)
 
         self.consistency_hint = QLabel(
-            "Set the ISO and aperture you'll scan with. Changing either afterwards throws off every scan made with this preset."
+            tr("Set the ISO and aperture you'll scan with. Changing either afterwards throws off every scan made with this preset.")
         )
         self.consistency_hint.setWordWrap(True)
         self.consistency_hint.setStyleSheet(f"color: {THEME.warn_amber}; font-size: {THEME.font_size_small}px;")
@@ -85,7 +86,7 @@ class CalibrationWindow(QDialog):
         self.progress.setVisible(False)
         layout.addWidget(self.progress)
 
-        self.status = QLabel("Click the clear film base (crosshair), name the stock, then Calibrate & Save.")
+        self.status = QLabel(tr("Click the clear film base (crosshair), name the stock, then Calibrate & Save."))
         self.status.setStyleSheet(f"color: {THEME.text_hint}; font-size: {THEME.font_size_small}px;")
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
@@ -121,7 +122,7 @@ class CalibrationWindow(QDialog):
         self.image.clear_frame()
         self.image.set_loading(True)
         self.progress.setVisible(False)
-        self.set_status("Click the clear film base (crosshair), name the stock, then Calibrate & Save.")
+        self.set_status(tr("Click the clear film base (crosshair), name the stock, then Calibrate & Save."))
         self.show()
         self.raise_()
 

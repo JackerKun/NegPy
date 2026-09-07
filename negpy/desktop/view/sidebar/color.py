@@ -6,6 +6,7 @@ from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import wrap_tooltip
 from negpy.desktop.view.widgets.sliders import CompactSlider, KelvinSlider
 from negpy.features.exposure.logic import kelvin_to_wb, wb_to_kelvin
+from negpy.kernel.system.i18n import tr
 
 
 class ColorSidebar(BaseSidebar):
@@ -16,13 +17,16 @@ class ColorSidebar(BaseSidebar):
 
         # Region selector, same idiom as the tone page's channel selector.
         self.region_global_btn = self._labeled_toggle(
-            "fa5s.globe", " Global", True, "Global — apply temperature and CMY white balance to the entire tonal range"
+            "fa5s.globe", tr(" Global"), True, tr("Global — apply temperature and CMY white balance to the entire tonal range")
         )
         self.region_shadow_btn = self._labeled_toggle(
-            "fa5s.moon", " Shadows", False, "Shadows — bias temperature and CMY white balance toward shadow (low-density) areas"
+            "fa5s.moon", tr(" Shadows"), False, tr("Shadows — bias temperature and CMY white balance toward shadow (low-density) areas")
         )
         self.region_highlight_btn = self._labeled_toggle(
-            "fa5s.sun", " Highlights", False, "Highlights — bias temperature and CMY white balance toward highlight (high-density) areas"
+            "fa5s.sun",
+            tr(" Highlights"),
+            False,
+            tr("Highlights — bias temperature and CMY white balance toward highlight (high-density) areas"),
         )
         self.region_btn_group = QButtonGroup(self)
         self.region_btn_group.setExclusive(True)
@@ -42,23 +46,25 @@ class ColorSidebar(BaseSidebar):
 
         self.pick_wb_btn = self._tool_toggle(
             "fa5s.eye-dropper",
-            "Pick WB",
+            tr("Pick WB"),
             tooltip_with_shortcut(
-                "Pick a neutral grey from the canvas — solves the selected region's CMY so the patch prints neutral",
+                tr("Pick a neutral grey from the canvas — solves the selected region's CMY so the patch prints neutral"),
                 "pick_wb",
             ),
         )
         self.temp_lock_btn = self._small_toggle(
             "fa5s.thermometer-half",
-            "Roll Lock",
+            tr("Roll Lock"),
             self.controller.session.repo.get_global_setting("wb_temp_lock") is not None,
-            "Roll lock — every newly opened frame re-aims this region's temperature to the target "
-            "(its own tint preserved); committing the slider while locked updates the target. "
-            "Each region (Global/Shadows/Highlights) holds its own lock.",
+            tr(
+                "Roll lock — every newly opened frame re-aims this region's temperature to the target "
+                "(its own tint preserved); committing the slider while locked updates the target. "
+                "Each region (Global/Shadows/Highlights) holds its own lock."
+            ),
         )
         self.region_reset_btn = self._icon_action(
             "fa5s.undo",
-            "Reset the selected region's white balance — Temperature and Cyan/Magenta/Yellow back to neutral",
+            tr("Reset the selected region's white balance — Temperature and Cyan/Magenta/Yellow back to neutral"),
         )
         self.ring_btn = self._tool_toggle("mdi.target", "", self._ring_tooltip())
         self.ring_btn.setFixedWidth(36)
@@ -71,28 +77,32 @@ class ColorSidebar(BaseSidebar):
         self.layout.addLayout(tools_row)
 
         # Temperature lever over the selected region's M/Y pair (real darkroom: cyan stays 0).
-        self.temp_slider = KelvinSlider("Temperature")
+        self.temp_slider = KelvinSlider(tr("Temperature"))
         self.temp_slider.setValue(wb_to_kelvin(conf.wb_magenta, conf.wb_yellow))
         self._temp_anchor = None
         self.layout.addWidget(self.temp_slider)
 
-        self.cyan_slider = CompactSlider("Cyan", -1.0, 1.0, conf.wb_cyan, has_neutral=True)
+        self.cyan_slider = CompactSlider(tr("Cyan"), -1.0, 1.0, conf.wb_cyan, has_neutral=True)
         self.cyan_slider.slider.setObjectName("cyan_slider")
-        self.magenta_slider = CompactSlider("Magenta", -1.0, 1.0, conf.wb_magenta, has_neutral=True)
+        self.magenta_slider = CompactSlider(tr("Magenta"), -1.0, 1.0, conf.wb_magenta, has_neutral=True)
         self.magenta_slider.slider.setObjectName("magenta_slider")
-        self.yellow_slider = CompactSlider("Yellow", -1.0, 1.0, conf.wb_yellow, has_neutral=True)
+        self.yellow_slider = CompactSlider(tr("Yellow"), -1.0, 1.0, conf.wb_yellow, has_neutral=True)
         self.yellow_slider.slider.setObjectName("yellow_slider")
         for slider in (self.cyan_slider, self.magenta_slider, self.yellow_slider):
             self.layout.addWidget(slider)
 
-        self.cast_removal_slider = CompactSlider("Cast Removal", 0.0, 1.0, conf.cast_removal_strength)
+        self.cast_removal_slider = CompactSlider(tr("Cast Removal"), 0.0, 1.0, conf.cast_removal_strength)
         self.cast_removal_slider.setToolTip(
-            "Cast Removal: balances each color layer against the frame's own greys, so neutrals stay "
-            "neutral from deep shadows through highlights. 0 = off, 1 = full."
-            "<br><br>On a color negative it defeats the orange mask and starts at 0.5. On a slide it "
-            "starts at 0 and corrects a faded original's crossover — a slide's cast can be the "
-            "photograph, so ask for it rather than getting it. Hidden for B&W Negative, which "
-            "collapses to one density and has no layers to balance."
+            wrap_tooltip(
+                tr(
+                    "Cast Removal: balances each color layer against the frame's own greys, so neutrals stay "
+                    "neutral from deep shadows through highlights. 0 = off, 1 = full."
+                    "<br><br>On a color negative it defeats the orange mask and starts at 0.5. On a slide it "
+                    "starts at 0 and corrects a faded original's crossover — a slide's cast can be the "
+                    "photograph, so ask for it rather than getting it. Hidden for B&W Negative, which "
+                    "collapses to one density and has no layers to balance."
+                )
+            )
         )
         self.layout.addWidget(self.cast_removal_slider)
 
@@ -147,13 +157,15 @@ class ColorSidebar(BaseSidebar):
     @staticmethod
     def _ring_tooltip(printing: bool = False) -> str:
         if printing:
-            return "Printing the color ring-around…"
+            return tr("Printing the color ring-around…")
         return tooltip_with_shortcut(
-            "Color Ring-Around: print the frame as a 5×5 mosaic — the centre patch neutral, the "
-            "ring stepping 2cc at a time out to ±4cc on the magenta and yellow axes. Click the patch "
-            "that looks neutral to keep its filtration. The 90° rotate controls turn the ladder while "
-            "it is up. With Cast Removal on the patches separate less, since it corrects toward "
-            "neutral underneath.",
+            tr(
+                "Color Ring-Around: print the frame as a 5×5 mosaic — the centre patch neutral, the "
+                "ring stepping 2cc at a time out to ±4cc on the magenta and yellow axes. Click the patch "
+                "that looks neutral to keep its filtration. The 90° rotate controls turn the ladder while "
+                "it is up. With Cast Removal on the patches separate less, since it corrects toward "
+                "neutral underneath."
+            ),
             "toggle_ring_around",
         )
 

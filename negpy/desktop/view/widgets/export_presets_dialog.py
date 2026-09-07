@@ -22,6 +22,7 @@ from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.export_settings_form import ExportSettingsForm
 from negpy.domain.models import ColorSpace, ExportFormat, ExportPreset, ExportResolutionMode, preset_display_name
 from negpy.features.exposure.models import RenderIntent
+from negpy.kernel.system.i18n import tr
 
 
 class ExportPresetsDialog(QDialog):
@@ -35,7 +36,7 @@ class ExportPresetsDialog(QDialog):
         self._selected_idx: int = -1
         self._updating_form = False
 
-        self.setWindowTitle("Export Presets")
+        self.setWindowTitle(tr("Export Presets"))
         self.resize(860, 620)
         self._init_ui()
         if self._presets:
@@ -56,7 +57,7 @@ class ExportPresetsDialog(QDialog):
         left_layout.setContentsMargins(8, 8, 8, 8)
         left_layout.setSpacing(6)
 
-        list_label = QLabel("PRESETS")
+        list_label = QLabel(tr("PRESETS"))
         list_label.setStyleSheet(pane_header_qss())
         left_layout.addWidget(list_label)
 
@@ -68,31 +69,31 @@ class ExportPresetsDialog(QDialog):
         btn_row = QHBoxLayout()
         self.add_btn = QPushButton()
         self.add_btn.setIcon(qta.icon("fa5s.plus", color=THEME.text_primary))
-        self.add_btn.setToolTip("Add print or flat master preset")
+        self.add_btn.setToolTip(tr("Add print or flat master preset"))
         self.add_btn.setFixedWidth(36)
         self.add_btn.clicked.connect(self._show_add_menu)
 
         self.dup_btn = QPushButton()
         self.dup_btn.setIcon(qta.icon("fa5s.copy", color=THEME.text_primary))
-        self.dup_btn.setToolTip("Duplicate preset")
+        self.dup_btn.setToolTip(tr("Duplicate preset"))
         self.dup_btn.setFixedWidth(36)
         self.dup_btn.clicked.connect(self._duplicate_preset)
 
         self.del_btn = QPushButton()
         self.del_btn.setIcon(qta.icon("fa5s.trash-alt", color=THEME.text_primary))
-        self.del_btn.setToolTip("Delete preset")
+        self.del_btn.setToolTip(tr("Delete preset"))
         self.del_btn.setFixedWidth(36)
         self.del_btn.clicked.connect(self._delete_preset)
 
         self.up_btn = QPushButton()
         self.up_btn.setIcon(qta.icon("fa5s.arrow-up", color=THEME.text_primary))
-        self.up_btn.setToolTip("Move up")
+        self.up_btn.setToolTip(tr("Move up"))
         self.up_btn.setFixedWidth(36)
         self.up_btn.clicked.connect(self._move_up)
 
         self.down_btn = QPushButton()
         self.down_btn.setIcon(qta.icon("fa5s.arrow-down", color=THEME.text_primary))
-        self.down_btn.setToolTip("Move down")
+        self.down_btn.setToolTip(tr("Move down"))
         self.down_btn.setFixedWidth(36)
         self.down_btn.clicked.connect(self._move_down)
 
@@ -124,7 +125,7 @@ class ExportPresetsDialog(QDialog):
     def _build_form(self) -> None:
         fl = self._form_layout
 
-        self._no_preset_label = hint_label("No preset selected. Add one with the + button.")
+        self._no_preset_label = hint_label(tr("No preset selected. Add one with the + button."))
         fl.addWidget(self._no_preset_label)
 
         self._form_container = QWidget()
@@ -135,9 +136,9 @@ class ExportPresetsDialog(QDialog):
         # Name & enabled
         row = QHBoxLayout()
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText("Preset name")
+        self.name_edit.setPlaceholderText(tr("Preset name"))
         self.name_edit.textChanged.connect(self._on_name_changed)
-        self.enabled_check = QCheckBox("Enabled")
+        self.enabled_check = QCheckBox(tr("Enabled"))
         self.enabled_check.stateChanged.connect(self._on_enabled_changed)
         row.addWidget(self.name_edit)
         row.addWidget(self.enabled_check)
@@ -198,9 +199,9 @@ class ExportPresetsDialog(QDialog):
         try:
             is_flat = preset.render_intent == RenderIntent.FLAT
             self.intent_label.setText(
-                "Flat master — exports a neutral log intermediate (16-bit TIFF or lossless JPEG XL)."
+                tr("Flat master — exports a neutral log intermediate (16-bit TIFF or lossless JPEG XL).")
                 if is_flat
-                else "Print — exports the full in-app photographic look."
+                else tr("Print — exports the full in-app photographic look.")
             )
             self.form.set_flat_mode(is_flat)
             self.name_edit.setText(preset.name)
@@ -246,8 +247,8 @@ class ExportPresetsDialog(QDialog):
 
     def _show_add_menu(self) -> None:
         menu = QMenu(self)
-        menu.addAction("Print preset", self._add_print_preset)
-        menu.addAction("Flat master preset", self._add_flat_preset)
+        menu.addAction(tr("Print preset"), self._add_print_preset)
+        menu.addAction(tr("Flat master preset"), self._add_flat_preset)
         menu.exec(self.add_btn.mapToGlobal(self.add_btn.rect().bottomLeft()))
 
     def _append_preset(self, preset: ExportPreset) -> None:

@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import QMenu, QMenuBar
 
 from negpy.desktop.view.shortcut_registry import key_for
 from negpy.desktop.view.window_menu import WindowMenu
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.version import ISSUES_PAGE
 
 if TYPE_CHECKING:
@@ -107,21 +108,21 @@ class MacMenuBar(QMenuBar):
         belongs in the application menu, and only that role puts it there with ⌘,.
         """
         menu = self._menu("NegPy")
-        self._add(menu, "Preferences…", action_id="open_preferences", role=QAction.MenuRole.PreferencesRole)
+        self._add(menu, tr("Preferences…"), action_id="open_preferences", role=QAction.MenuRole.PreferencesRole)
         return menu
 
     def _build_help(self) -> QMenu:
-        menu = self._menu("Help")
-        self._add(menu, "Take the Tour", slot=self._window.show_tutorial)
-        self._add(menu, "Keyboard Shortcuts", action_id="show_shortcuts")
-        self._add(menu, "Customize Shortcuts…", slot=self._open_shortcut_editor)
-        self._add(menu, "Analysis Panel Guide", action_id="show_analysis_help")
+        menu = self._menu(tr("Help"))
+        self._add(menu, tr("Take the Tour"), slot=self._window.show_tutorial)
+        self._add(menu, tr("Keyboard Shortcuts"), action_id="show_shortcuts")
+        self._add(menu, tr("Customize Shortcuts…"), slot=self._open_shortcut_editor)
+        self._add(menu, tr("Analysis Panel Guide"), action_id="show_analysis_help")
         menu.addSeparator()
         # No registry entry: the item exists only in this bar, and a binding would advertise
         # it in the shortcut editor and the ? overlay on Windows and Linux, where nothing
         # can run it.
-        self._add(menu, "Report an Issue…", slot=self._report_an_issue)
-        self._add(menu, "Check for Updates…", action_id="check_for_updates")
+        self._add(menu, tr("Report an Issue…"), slot=self._report_an_issue)
+        self._add(menu, tr("Check for Updates…"), action_id="check_for_updates")
         return menu
 
     # -- state ----------------------------------------------------------------------

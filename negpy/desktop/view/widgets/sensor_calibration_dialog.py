@@ -19,10 +19,10 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from negpy.kernel.system.text import plural
 from negpy.desktop.view.styles.templates import hint_label
 from negpy.desktop.view.widgets.file_dialogs import pick_start_dir
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.features.process.sensor import build_sensor_matrix, measure_capture
 from negpy.infrastructure.loaders.helpers import get_supported_raw_wildcards
 from negpy.services.assets.sensor import SensorProfiles
@@ -41,7 +41,7 @@ class SensorCalibrationDialog(QDialog):
         super().__init__(parent)
         self._start_dir = start_dir
         self._paths = {"R": "", "G": "", "B": ""}
-        self.setWindowTitle("Calibrate Sensor")
+        self.setWindowTitle(tr("Calibrate Sensor"))
         self.resize(560, 320)
         self._init_ui()
 
@@ -49,9 +49,11 @@ class SensorCalibrationDialog(QDialog):
         root = QVBoxLayout(self)
         root.setSpacing(10)
         intro = QLabel(
-            "Pick three <b>bare-light</b> exposures — red-only, green-only and blue-only, with no film in the "
-            "holder and the same light and camera settings you scan with. NegPy measures the sensor's response "
-            "to each band and builds the correction. Expose just below clipping."
+            tr(
+                "Pick three <b>bare-light</b> exposures — red-only, green-only and blue-only, with no film in the "
+                "holder and the same light and camera settings you scan with. NegPy measures the sensor's response "
+                "to each band and builds the correction. Expose just below clipping."
+            )
         )
         intro.setWordWrap(True)
         intro.setStyleSheet(f"color: {THEME.text_secondary};")
@@ -60,11 +62,11 @@ class SensorCalibrationDialog(QDialog):
         grid = QGridLayout()
         self._path_edits = {}
         for i, (band, label) in enumerate(_BANDS):
-            grid.addWidget(QLabel(label), i, 0)
+            grid.addWidget(QLabel(tr(label)), i, 0)
             edit = QLineEdit()
             edit.setReadOnly(True)
-            edit.setPlaceholderText("Choose a capture…")
-            browse = QPushButton("Browse…")
+            edit.setPlaceholderText(tr("Choose a capture…"))
+            browse = QPushButton(tr("Browse…"))
             browse.clicked.connect(lambda _c=False, b=band: self._browse(b))
             grid.addWidget(edit, i, 1)
             grid.addWidget(browse, i, 2)
@@ -73,9 +75,9 @@ class SensorCalibrationDialog(QDialog):
         root.addLayout(grid)
 
         name_row = QHBoxLayout()
-        name_row.addWidget(QLabel("Name"))
+        name_row.addWidget(QLabel(tr("Name")))
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText("e.g. X-T30 + Scanlight v4")
+        self.name_edit.setPlaceholderText(tr("e.g. X-T30 + Scanlight v4"))
         self.name_edit.textChanged.connect(self._refresh)
         name_row.addWidget(self.name_edit, 1)
         root.addLayout(name_row)
@@ -88,9 +90,9 @@ class SensorCalibrationDialog(QDialog):
 
         btn_row = QHBoxLayout()
         btn_row.addStretch()
-        close = QPushButton("Close")
+        close = QPushButton(tr("Close"))
         close.clicked.connect(self.reject)
-        self.compute_btn = QPushButton("Compute and Save")
+        self.compute_btn = QPushButton(tr("Compute and Save"))
         self.compute_btn.setDefault(True)
         self.compute_btn.clicked.connect(self._compute_and_save)
         btn_row.addWidget(close)
@@ -103,7 +105,10 @@ class SensorCalibrationDialog(QDialog):
         # where the bands already picked are.
         start = pick_start_dir(self._paths[band], *self._paths.values(), self._start_dir)
         path, _ = QFileDialog.getOpenFileName(
-            self, f"Select the {band} bare-light exposure", start, f"Supported Images ({get_supported_raw_wildcards()})"
+            self,
+            tr("Select the {band} bare-light exposure").format(band=band),
+            start,
+            tr("Supported Images ({wildcards})").format(wildcards=get_supported_raw_wildcards()),
         )
         if path:
             self._paths[band] = path
@@ -137,7 +142,7 @@ class SensorCalibrationDialog(QDialog):
                     clipped.append(band)
             matrix = build_sensor_matrix(measured["R"], measured["G"], measured["B"])
         except Exception as exc:
-            self._show_result(f"Could not build the matrix: {exc}")
+            self._show_result(tr("Could not build the matrix: {error}").format(error=exc))
             return
         finally:
             QGuiApplication.restoreOverrideCursor()
@@ -151,12 +156,16 @@ class SensorCalibrationDialog(QDialog):
         s_norm = s / np.diag(s)
         gb, bg = s_norm[2, 1], s_norm[1, 2]  # green->blue / blue->green, the usual dominant leaks
         lines = [
-            f"<b>Saved “{name}”</b> — measured green↔blue leakage {gb * 100:.0f}% / {bg * 100:.0f}%.",
+            tr("<b>Saved “{name}”</b> — measured green↔blue leakage {gb}% / {bg}%.").format(
+                name=name, gb=f"{gb * 100:.0f}", bg=f"{bg * 100:.0f}"
+            ),
         ]
         if clipped:
-            lines.append(
-                f"⚠ {'/'.join(clipped)} {plural(len(clipped), 'exposure')} {plural(len(clipped), 'looks', 'look')} clipped — reshoot dimmer for an accurate matrix."
-            )
+            bands = "/".join(clipped)
+            if len(clipped) == 1:
+                lines.append(tr("⚠ {bands} exposure looks clipped — reshoot dimmer for an accurate matrix.").format(bands=bands))
+            else:
+                lines.append(tr("⚠ {bands} exposures look clipped — reshoot dimmer for an accurate matrix.").format(bands=bands))
         return "<br>".join(lines)
 
     def _show_result(self, text: str) -> None:

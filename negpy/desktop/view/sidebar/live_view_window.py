@@ -18,6 +18,7 @@ from negpy.desktop.view.sidebar.roi_image import RoiImageLabel
 from negpy.desktop.view.styles.templates import pin_dialog_default
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.floating_panel import float_over_app
+from negpy.kernel.system.i18n import tr
 
 #: Progress-bar chunk color per triplet channel. The live view freezes during a triplet,
 #: because the capture now holds the camera without gaps, so the bar carries the R to G
@@ -132,7 +133,7 @@ class LiveViewWindow(QDialog):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Scanlight — Live View")
+        self.setWindowTitle(tr("Scanlight — Live View"))
         self.setModal(False)
         float_over_app(self)
         self.resize(900, 720)
@@ -140,10 +141,10 @@ class LiveViewWindow(QDialog):
 
         # ── capture toolbar (mirrors the panel so you needn't switch tabs) ──
         bar = QHBoxLayout()
-        self.scan_btn = QPushButton(qta.icon("fa5s.camera-retro", color=THEME.text_primary), " Scan")
+        self.scan_btn = QPushButton(qta.icon("fa5s.camera-retro", color=THEME.text_primary), tr(" Scan"))
         self.scan_btn.setFixedHeight(36)
-        self.retake_btn = QPushButton(qta.icon("fa5s.redo", color=THEME.text_primary), " Retake")
-        self.retake_btn.setToolTip("Re-capture the current frame without advancing the counter")
+        self.retake_btn = QPushButton(qta.icon("fa5s.redo", color=THEME.text_primary), tr(" Retake"))
+        self.retake_btn.setToolTip(tr("Re-capture the current frame without advancing the counter"))
         bar.addWidget(self.scan_btn, 2)
         bar.addWidget(self.retake_btn, 1)
         layout.addLayout(bar)
@@ -180,9 +181,9 @@ class LiveViewWindow(QDialog):
         # No white-balance control: the scan decodes RAW with a fixed neutral WB, so the camera's
         # WB only tints the preview, never the result.
         for tag_text, stepper, tip in (
-            ("ISO", self.iso_stepper, "ISO sensitivity"),
-            ("Shutter", self.shutter_stepper, "Shutter speed"),
-            ("Aperture", self.aperture_stepper, "Aperture (needs an electronically controlled lens)"),
+            (tr("ISO"), self.iso_stepper, tr("ISO sensitivity")),
+            (tr("Shutter"), self.shutter_stepper, tr("Shutter speed")),
+            (tr("Aperture"), self.aperture_stepper, tr("Aperture (needs an electronically controlled lens)")),
         ):
             tag = QLabel(tag_text)
             tag.setAlignment(Qt.AlignmentFlag.AlignHCenter)  # label sits centred above its value
@@ -200,7 +201,7 @@ class LiveViewWindow(QDialog):
         # be advanced. Below the view, mirroring the calibration window's bar placement.
         self.progress = QProgressBar()
         self.progress.setRange(0, 100)
-        self.progress.setFormat("Capturing… %p%")
+        self.progress.setFormat(tr("Capturing… %p%"))
         self.progress.setVisible(False)
         layout.addWidget(self.progress)
         # Invalidates a pending post-capture flash when a new capture starts underneath it.
@@ -223,8 +224,8 @@ class LiveViewWindow(QDialog):
         # letter keys are safe. The buttons respect their gated state.
         for key, btn in (("S", self.scan_btn), ("R", self.retake_btn)):
             QShortcut(QKeySequence(key), self, btn.click)
-        self.scan_btn.setToolTip("Scan / Stop  (shortcut: S)")
-        self.retake_btn.setToolTip("Re-capture the current frame without advancing the counter  (shortcut: R)")
+        self.scan_btn.setToolTip(tr("Scan / Stop  (shortcut: S)"))
+        self.retake_btn.setToolTip(tr("Re-capture the current frame without advancing the counter  (shortcut: R)"))
 
     def set_preview_available(self, available: bool, reason: str = "") -> None:
         """Swap the preview pane for an explanation on bodies that cannot stream.
@@ -235,8 +236,10 @@ class LiveViewWindow(QDialog):
         self.image.setVisible(available)
         self.no_preview.setVisible(not available)
         if not available:
-            self.no_preview.setText(f"{reason}\n\nFraming and focus have to be set on the camera itself. Scanning works as usual.")
-        self.setWindowTitle("Scanlight — Live View" if available else "Scanlight — Scan (no live view)")
+            self.no_preview.setText(
+                tr("{reason}\n\nFraming and focus have to be set on the camera itself. Scanning works as usual.").format(reason=reason)
+            )
+        self.setWindowTitle(tr("Scanlight — Live View") if available else tr("Scanlight — Scan (no live view)"))
 
     def set_progress(self, frac: float) -> None:
         self._flash_token += 1
@@ -249,7 +252,7 @@ class LiveViewWindow(QDialog):
         color = _CHANNEL_COLORS.get(letter)
         if color:
             self.progress.setStyleSheet(f"QProgressBar::chunk {{ background-color: {color}; }}")
-            self.progress.setFormat(f"Capturing {letter}… %p%")
+            self.progress.setFormat(tr("Capturing {letter}… %p%").format(letter=letter))
 
     def flash_captured(self, frame: str) -> None:
         """Fill the bar green with a checkmark for a beat, then hide it — the 'frame is
@@ -257,7 +260,7 @@ class LiveViewWindow(QDialog):
         self._flash_token += 1
         token = self._flash_token
         self.progress.setStyleSheet(f"QProgressBar::chunk {{ background-color: {_DONE_COLOR}; }}")
-        self.progress.setFormat(f"✓ Frame {frame} captured" if frame else "✓ Captured")
+        self.progress.setFormat(tr("✓ Frame {frame} captured").format(frame=frame) if frame else tr("✓ Captured"))
         self.progress.setValue(100)
         self.progress.setVisible(True)
         QTimer.singleShot(_FLASH_MS, lambda: self._end_flash(token))
@@ -270,15 +273,15 @@ class LiveViewWindow(QDialog):
         self._flash_token += 1
         self.progress.setVisible(False)
         self.progress.setStyleSheet("")
-        self.progress.setFormat("Capturing… %p%")
+        self.progress.setFormat(tr("Capturing… %p%"))
 
     def set_scanning(self, active: bool) -> None:
         """Mirror the panel's Scan/Stop toggle on the pop-up button."""
         if active:
-            self.scan_btn.setText(" Stop")
+            self.scan_btn.setText(tr(" Stop"))
             self.scan_btn.setIcon(qta.icon("fa5s.stop", color=THEME.text_primary))
         else:
-            self.scan_btn.setText(" Scan")
+            self.scan_btn.setText(tr(" Scan"))
             self.scan_btn.setIcon(qta.icon("fa5s.camera-retro", color=THEME.text_primary))
 
     def set_status(self, text: str) -> None:

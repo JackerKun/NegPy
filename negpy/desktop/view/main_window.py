@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from negpy.kernel.system.text import count_of
+from negpy.kernel.system.i18n import tr
 from negpy.desktop.controller import AppController
 from negpy.desktop.session import ToolMode
 from negpy.infrastructure.loaders.constants import SUPPORTED_RAW_EXTENSIONS
@@ -98,7 +98,7 @@ class _EmptyStateOverlay(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(12)
 
-        self.load_btn = QPushButton("Load some scans to get started")
+        self.load_btn = QPushButton(tr("Load some scans to get started"))
         self.load_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.load_btn.setStyleSheet(
             f"QPushButton {{ background: transparent; color: {THEME.text_secondary}; "
@@ -108,7 +108,7 @@ class _EmptyStateOverlay(QWidget):
         self.load_btn.clicked.connect(self._show_load_menu)
         layout.addWidget(self.load_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        self.tour_btn = QPushButton("Take the tour")
+        self.tour_btn = QPushButton(tr("Take the tour"))
         self.tour_btn.setFixedWidth(140)
         self.tour_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.tour_btn.setStyleSheet(
@@ -122,8 +122,8 @@ class _EmptyStateOverlay(QWidget):
 
     def _show_load_menu(self) -> None:
         menu = QMenu(self)
-        menu.addAction("Add files…").triggered.connect(self.add_files_requested)
-        menu.addAction("Add folder…").triggered.connect(self.add_folder_requested)
+        menu.addAction(tr("Add files…")).triggered.connect(self.add_files_requested)
+        menu.addAction(tr("Add folder…")).triggered.connect(self.add_folder_requested)
         menu.exec(self.load_btn.mapToGlobal(self.load_btn.rect().bottomLeft()))
 
     def eventFilter(self, obj, event) -> bool:
@@ -215,10 +215,14 @@ class MainWindow(QMainWindow):
         opens the library — with nothing loaded, a list of rolls beats a blank panel."""
         paths = self.controller.saved_session_paths()
         if paths:
+            if len(paths) == 1:
+                message = tr("Reopen your last session (1 file)?")
+            else:
+                message = tr("Reopen your last session ({count} files)?").format(count=len(paths))
             reply = QMessageBox.question(
                 self,
-                "Restore Session",
-                f"Reopen your last session ({count_of(len(paths), 'file')})?",
+                tr("Restore Session"),
+                message,
             )
             if reply == QMessageBox.StandardButton.Yes:
                 self.controller.restore_session()
@@ -268,9 +272,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.drawer = PinnableDockWidget(
-            "Controls",
+            tr("Controls"),
             self,
-            pin_tooltip=tooltip_with_shortcut("Dock controls panel to right", "toggle_right_panel"),
+            pin_tooltip=tooltip_with_shortcut(tr("Dock controls panel to right"), "toggle_right_panel"),
             on_pin=self.dock_controls_panel,
         )
         self.drawer.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
@@ -285,9 +289,9 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.drawer)
 
         self.session_dock = PinnableDockWidget(
-            "Session",
+            tr("Session"),
             self,
-            pin_tooltip=tooltip_with_shortcut("Dock session panel to left", "toggle_left_panel"),
+            pin_tooltip=tooltip_with_shortcut(tr("Dock session panel to left"), "toggle_left_panel"),
             on_pin=self.dock_session_panel,
         )
         self.session_dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
@@ -322,7 +326,7 @@ class MainWindow(QMainWindow):
             filename = os.path.basename(state.current_file_path)
             prefix = "● " if state.is_dirty else ""
             tool = self.TOOL_LABELS.get(state.active_tool)
-            tool_prefix = f"[{tool}] " if tool else ""
+            tool_prefix = f"[{tr(tool)}] " if tool else ""
             self.setWindowTitle(f"{prefix}NegPy — {tool_prefix}{filename}")
         else:
             self.setWindowTitle("NegPy")
@@ -496,15 +500,15 @@ class MainWindow(QMainWindow):
         render, so the composing happens here rather than in an export worker."""
         sheet = self.canvas.overlay.printing_notes_sheet()
         if sheet is None:
-            self.controller.set_status("Printing notes need a rendered frame", 4000)
+            self.controller.set_status(tr("Printing notes need a rendered frame"), 4000)
             return
         path = self.controller.printing_notes_target_path()
         if not path:
             return
         if sheet.save(path, "JPEG", self.controller.state.config.export.jpeg_quality):
-            self.controller.set_status(f"Printing notes saved: {os.path.basename(path)}", 4000)
+            self.controller.set_status(tr("Printing notes saved: {name}").format(name=os.path.basename(path)), 4000)
         else:
-            self.controller.set_status(f"Could not write {path}", 4000)
+            self.controller.set_status(tr("Could not write {path}").format(path=path), 4000)
 
     def _display_buffer_for_canvas(self, buffer):
         if isinstance(buffer, GPUTexture):
@@ -595,10 +599,10 @@ class MainWindow(QMainWindow):
         w, h = self.state.original_res
         res_str = f"{w} x {h} px"
 
-        mode_str = str(self.state.config.process.process_mode)
-        edits_str = f"Edits: {self.state.undo_index}"
+        mode_str = tr(str(self.state.config.process.process_mode))
+        edits_str = tr("Edits: {n}").format(n=self.state.undo_index)
 
-        tool_label = self.TOOL_LABELS.get(self.state.active_tool, "")
+        tool_label = tr(self.TOOL_LABELS.get(self.state.active_tool, ""))
         total = len(self.state.uploaded_files)
         idx = self.state.selected_file_idx
         file_pos = f"{idx + 1} / {total}" if total > 1 and idx >= 0 else ""
@@ -610,13 +614,13 @@ class MainWindow(QMainWindow):
 
     def _on_export_progress(self, current: int, total: int, filename: str) -> None:
         self.canvas.hud.set_progress(current, total)
-        self.canvas.hud.showMessage(f"Exporting {filename} ({current}/{total})...")
+        self.canvas.hud.showMessage(tr("Exporting {filename} ({current}/{total})…").format(filename=filename, current=current, total=total))
 
     def _on_export_finished(self, elapsed: float, failed: int) -> None:
         self.canvas.hud.hide_progress()
-        msg = f"export complete in {elapsed:.2f}s"
+        msg = tr("Export complete in {seconds}s").format(seconds=f"{elapsed:.2f}")
         if failed:
-            msg += f" — {failed} failed"
+            msg += tr(" — {count} failed").format(count=failed)
         self.canvas.hud.showMessage(msg, timeout=6000 if failed else 3000)
 
     def resizeEvent(self, event) -> None:

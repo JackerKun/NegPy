@@ -14,6 +14,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QDialog, QFrame, QHBoxLayout, QLabel, QPushButton, QTextBrowser, QVBoxLayout, QWidget
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.paths import get_resource_path
 
 _MARKER = re.compile(r"^<!--\s*panel:([a-z_]+)\s*-->\s*$")
@@ -65,7 +66,7 @@ class SectionHelpDialog(QDialog):
 
     def __init__(self, key: str, title: str, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        heading = f"Reading the {title} panel"
+        heading = tr("Reading the {section} panel").format(section=title)
         self.setWindowTitle(heading)
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowCloseButtonHint)
         self.setModal(True)
@@ -99,7 +100,7 @@ class SectionHelpDialog(QDialog):
 
         actions = QHBoxLayout()
         actions.addStretch()
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(tr("Close"))
         close_btn.setProperty("primary", True)
         close_btn.clicked.connect(self.accept)
         actions.addWidget(close_btn)

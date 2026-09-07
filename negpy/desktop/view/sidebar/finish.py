@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QColorDialog, QHBoxLayout, QPushButton
 from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import default_button_height, section_subheader, wrap_tooltip
 from negpy.desktop.view.widgets.sliders import CompactSlider
+from negpy.kernel.system.i18n import tr
 
 
 class FinishSidebar(BaseSidebar):
@@ -14,50 +15,56 @@ class FinishSidebar(BaseSidebar):
     def _init_ui(self) -> None:
         conf = self.state.config.finish
 
-        self.layout.addWidget(section_subheader("VIGNETTE"))
+        self.layout.addWidget(section_subheader(tr("VIGNETTE")))
 
-        self.vignette_burn_slider = CompactSlider("Burn", -2.0, 2.0, conf.vignette_stops, unit=" st")
+        self.vignette_burn_slider = CompactSlider(tr("Burn"), -2.0, 2.0, conf.vignette_stops, unit=" st")
         self.layout.addWidget(self.vignette_burn_slider)
 
         row1 = QHBoxLayout()
-        self.vignette_size_slider = CompactSlider("Size", 0.0, 1.0, conf.vignette_size)
-        self.vignette_roundness_slider = CompactSlider("Roundness", 0.0, 1.0, conf.vignette_roundness)
+        self.vignette_size_slider = CompactSlider(tr("Size"), 0.0, 1.0, conf.vignette_size)
+        self.vignette_roundness_slider = CompactSlider(tr("Roundness"), 0.0, 1.0, conf.vignette_roundness)
         row1.addWidget(self.vignette_size_slider)
         row1.addWidget(self.vignette_roundness_slider)
         self.layout.addLayout(row1)
 
-        self.layout.addWidget(section_subheader("FILED CARRIER"))
-        self.carrier_width_slider = CompactSlider("Width", 0.0, 5.0, conf.carrier_width)
-        self.carrier_width_slider.setToolTip("Filed-out negative carrier: a black rebate frame inside a margin of unexposed paper. 0 = off")
-        self.carrier_rough_slider = CompactSlider("Roughness", 0.0, 1.0, conf.carrier_rough)
+        self.layout.addWidget(section_subheader(tr("FILED CARRIER")))
+        self.carrier_width_slider = CompactSlider(tr("Width"), 0.0, 5.0, conf.carrier_width)
+        self.carrier_width_slider.setToolTip(
+            tr("Filed-out negative carrier: a black rebate frame inside a margin of unexposed paper. 0 = off")
+        )
+        self.carrier_rough_slider = CompactSlider(tr("Roughness"), 0.0, 1.0, conf.carrier_rough)
         self.carrier_rough_slider.setToolTip(
-            "How raggedly the aperture was filed — the paper-side edge of the black frame. "
-            "The picture-side edge is the camera's film gate and only ever wobbles slightly."
+            tr(
+                "How raggedly the aperture was filed — the paper-side edge of the black frame. "
+                "The picture-side edge is the camera's film gate and only ever wobbles slightly."
+            )
         )
         row_carrier = QHBoxLayout()
         row_carrier.addWidget(self.carrier_width_slider)
         row_carrier.addWidget(self.carrier_rough_slider)
         self.layout.addLayout(row_carrier)
 
-        self.carrier_flare_slider = CompactSlider("Flare", 0.0, 1.0, conf.carrier_flare)
+        self.carrier_flare_slider = CompactSlider(tr("Flare"), 0.0, 1.0, conf.carrier_flare)
         self.carrier_flare_slider.setToolTip(
-            "Light reflected off the bared metal of the filed bevel: a glow that lifts the black just inside "
-            "the filed edge and stains the paper just outside it. Colored on color film, neutral in B&W. 0 = off"
+            tr(
+                "Light reflected off the bared metal of the filed bevel: a glow that lifts the black just inside "
+                "the filed edge and stains the paper just outside it. Colored on color film, neutral in B&W. 0 = off"
+            )
         )
-        self.carrier_corner_slider = CompactSlider("Corners", 0.0, 1.0, conf.carrier_corner)
-        self.carrier_corner_slider.setToolTip("How far the filed aperture's corners round off — no file cuts a sharp inside corner")
+        self.carrier_corner_slider = CompactSlider(tr("Corners"), 0.0, 1.0, conf.carrier_corner)
+        self.carrier_corner_slider.setToolTip(tr("How far the filed aperture's corners round off — no file cuts a sharp inside corner"))
         row_carrier2 = QHBoxLayout()
         row_carrier2.addWidget(self.carrier_flare_slider)
         row_carrier2.addWidget(self.carrier_corner_slider)
         self.layout.addLayout(row_carrier2)
 
-        self.layout.addWidget(section_subheader("BORDER"))
+        self.layout.addWidget(section_subheader(tr("BORDER")))
 
         row2 = QHBoxLayout()
-        self.border_slider = CompactSlider("Width", 0.0, 2.5, conf.border_size)
-        self.bottom_weight_slider = CompactSlider("Bottom Weight", 1.0, 2.0, conf.border_bottom_weight)
+        self.border_slider = CompactSlider(tr("Width"), 0.0, 2.5, conf.border_size)
+        self.bottom_weight_slider = CompactSlider(tr("Bottom Weight"), 1.0, 2.0, conf.border_bottom_weight)
         self.bottom_weight_slider.setToolTip(
-            wrap_tooltip("Thicken the bottom border relative to the other three, the window-mat proportion.")
+            wrap_tooltip(tr("Thicken the bottom border relative to the other three, the window-mat proportion."))
         )
         row2.addWidget(self.border_slider)
         row2.addWidget(self.bottom_weight_slider)
@@ -66,11 +73,14 @@ class FinishSidebar(BaseSidebar):
         row3 = QHBoxLayout()
         self.color_btn = QPushButton()
         self.color_btn.setFixedHeight(default_button_height())
-        self.color_btn.setToolTip("Click to pick a border color")
+        self.color_btn.setToolTip(tr("Click to pick a border color"))
         self._update_color_btn(conf.border_color)
 
         self.match_paper_btn = self._small_toggle(
-            "fa5s.file", "Paper White", conf.border_match_paper, "Tint the mat with the toned paper white instead of the picked color"
+            "fa5s.file",
+            tr("Paper White"),
+            conf.border_match_paper,
+            tr("Tint the mat with the toned paper white instead of the picked color"),
         )
         row3.addWidget(self.color_btn, 1)
         row3.addWidget(self.match_paper_btn, 1)

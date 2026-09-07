@@ -5,6 +5,7 @@ from negpy.desktop.view.styles.templates import field_label
 from negpy.desktop.view.widgets.sliders import CompactSlider
 from negpy.features.altprocess.models import AltProcess, Sensitizer
 from negpy.features.process.models import ProcessMode
+from negpy.kernel.system.i18n import tr
 
 _SENSITIZER_LABELS = {
     Sensitizer.CLASSIC: "Classic (Herschel)",
@@ -27,27 +28,31 @@ class AltProcessSidebar(BaseSidebar):
         self.mode_buttons = {}
         mode_row = QHBoxLayout()
         for mode, icon, label, tip in (
-            (AltProcess.NONE, "fa5s.ban", "None", "Print normally — no alternative process."),
+            (AltProcess.NONE, "fa5s.ban", tr("None"), tr("Print normally — no alternative process.")),
             (
                 AltProcess.LITH,
                 "fa5s.fire",
-                "Lith",
-                "Develop the print in dilute lith developer: creamy warm highlights and a "
-                "near-vertical drop into hard, sooty blacks.\n"
-                "The color — peach highlights through an olive transition to neutral blacks — "
-                "comes from the paper chosen in Exposure.\n"
-                "Only Selenium and Gold do anything distinctive on a lith print, so the other toners "
-                "are disabled while this is on",
+                tr("Lith"),
+                tr(
+                    "Develop the print in dilute lith developer: creamy warm highlights and a "
+                    "near-vertical drop into hard, sooty blacks.\n"
+                    "The color — peach highlights through an olive transition to neutral blacks — "
+                    "comes from the paper chosen in Exposure.\n"
+                    "Only Selenium and Gold do anything distinctive on a lith print, so the other toners "
+                    "are disabled while this is on"
+                ),
             ),
             (
                 AltProcess.CYANOTYPE,
                 "fa5s.sun",
-                "Cyanotype",
-                "Contact-print the negative in UV onto iron-sensitised rag paper. The image "
-                "substance is Prussian blue, so the print never goes black — it goes blue, with "
-                "green highlights where the residual yellow sensitiser mixes in.\n"
-                "There is no silver in a cyanotype, so every chemical toner is disabled while "
-                "this is on; use Bleach and Tannin instead",
+                tr("Cyanotype"),
+                tr(
+                    "Contact-print the negative in UV onto iron-sensitised rag paper. The image "
+                    "substance is Prussian blue, so the print never goes black — it goes blue, with "
+                    "green highlights where the residual yellow sensitiser mixes in.\n"
+                    "There is no silver in a cyanotype, so every chemical toner is disabled while "
+                    "this is on; use Bleach and Tannin instead"
+                ),
             ),
         ):
             btn = self._tool_toggle(icon, label, tip)
@@ -69,21 +74,27 @@ class AltProcessSidebar(BaseSidebar):
         col = QVBoxLayout(block)
         col.setContentsMargins(0, 0, 0, 0)
 
-        self.exposure_slider = CompactSlider("Exposure", 0.0, 5.0, conf.lith_exposure, step=0.1, unit=" st")
+        self.exposure_slider = CompactSlider(tr("Exposure"), 0.0, 5.0, conf.lith_exposure, step=0.1, unit=" st")
         self.exposure_slider.setToolTip(
-            "Print over-exposure. Lith printing runs on two to four stops more light than a normal print: "
-            "more light gives warmer, more colorful highlights and softer gradation"
+            tr(
+                "Print over-exposure. Lith printing runs on two to four stops more light than a normal print: "
+                "more light gives warmer, more colorful highlights and softer gradation"
+            )
         )
-        self.snatch_slider = CompactSlider("Snatch Point", 0.0, 1.0, conf.lith_snatch)
+        self.snatch_slider = CompactSlider(tr("Snatch Point"), 0.0, 1.0, conf.lith_snatch)
         self.snatch_slider.setToolTip(
-            "How long the print stays in the developer before it is snatched out. "
-            "Later (higher) drops the knee further up the tonal scale: deeper, colder blacks and a wider "
-            "band of undifferentiated shadow. Earlier keeps the print high-key, warm and weak in the blacks"
+            tr(
+                "How long the print stays in the developer before it is snatched out. "
+                "Later (higher) drops the knee further up the tonal scale: deeper, colder blacks and a wider "
+                "band of undifferentiated shadow. Earlier keeps the print high-key, warm and weak in the blacks"
+            )
         )
-        self.abruptness_slider = CompactSlider("Abruptness", 0.0, 1.0, conf.lith_abruptness)
+        self.abruptness_slider = CompactSlider(tr("Abruptness"), 0.0, 1.0, conf.lith_abruptness)
         self.abruptness_slider.setToolTip(
-            "How abruptly the shadows go black — a seasoned, low-sulphite developer makes the knee a step. "
-            "Low leaves a gentle roll into the blacks"
+            tr(
+                "How abruptly the shadows go black — a seasoned, low-sulphite developer makes the knee a step. "
+                "Low leaves a gentle roll into the blacks"
+            )
         )
 
         col.addWidget(self.exposure_slider)
@@ -101,39 +112,47 @@ class AltProcessSidebar(BaseSidebar):
         sens_row = QHBoxLayout()
         self.sensitizer_combo = QComboBox()
         for s in Sensitizer:
-            self.sensitizer_combo.addItem(_SENSITIZER_LABELS[s], s.value)
+            self.sensitizer_combo.addItem(tr(_SENSITIZER_LABELS[s]), s.value)
         self._select_sensitizer(conf.cyano_sensitizer)
         self.sensitizer_combo.setToolTip(
-            "Sensitiser. Classic is Herschel's ammonium ferric citrate: it loses much of its "
-            "pigment in the wash, so it tops out around a red-channel density of 1.0 and keeps a "
-            "strong green highlight stain. New is Ware's ferric oxalate — deeper, cleaner and "
-            "able to hold a far longer scale"
+            tr(
+                "Sensitiser. Classic is Herschel's ammonium ferric citrate: it loses much of its "
+                "pigment in the wash, so it tops out around a red-channel density of 1.0 and keeps a "
+                "strong green highlight stain. New is Ware's ferric oxalate — deeper, cleaner and "
+                "able to hold a far longer scale"
+            )
         )
-        sens_row.addWidget(field_label("Sensitiser"))
+        sens_row.addWidget(field_label(tr("Sensitiser")))
         sens_row.addWidget(self.sensitizer_combo, stretch=1)
         col.addLayout(sens_row)
 
-        self.cyano_exposure_slider = CompactSlider("Exposure", -2.0, 4.0, conf.cyano_exposure, step=0.1, unit=" st")
+        self.cyano_exposure_slider = CompactSlider(tr("Exposure"), -2.0, 4.0, conf.cyano_exposure, step=0.1, unit=" st")
         self.cyano_exposure_slider.setToolTip(
-            "Time under the UV source. More light drives more of the scale into Prussian blue; less leaves the print pale and high-key"
+            tr("Time under the UV source. More light drives more of the scale into Prussian blue; less leaves the print pale and high-key")
         )
-        self.cyano_scale_slider = CompactSlider("Exposure Scale", 0.8, 2.8, conf.cyano_scale, step=0.05)
+        self.cyano_scale_slider = CompactSlider(tr("Exposure Scale"), 0.8, 2.8, conf.cyano_scale, step=0.05)
         self.cyano_scale_slider.setToolTip(
-            "The negative density range the sensitiser can print, in log D — the contrast control. "
-            "Ware measures about 1.0 to 1.2 for the traditional formula against 2.4 for the new one, "
-            "and his Simple Cyanotype ships as three variants at 1.8, 2.3 and 2.7. "
-            "Short scale means a contrastier print that clips both ends of a normal negative"
+            tr(
+                "The negative density range the sensitiser can print, in log D — the contrast control. "
+                "Ware measures about 1.0 to 1.2 for the traditional formula against 2.4 for the new one, "
+                "and his Simple Cyanotype ships as three variants at 1.8, 2.3 and 2.7. "
+                "Short scale means a contrastier print that clips both ends of a normal negative"
+            )
         )
-        self.cyano_bleach_slider = CompactSlider("Bleach", 0.0, 0.5, conf.cyano_bleach)
+        self.cyano_bleach_slider = CompactSlider(tr("Bleach"), 0.0, 0.5, conf.cyano_bleach)
         self.cyano_bleach_slider.setToolTip(
-            "Washing soda. Strips Prussian blue out of the print, highlights first — take it far "
-            "enough and only the deepest shadows keep any pigment"
+            tr(
+                "Washing soda. Strips Prussian blue out of the print, highlights first — take it far "
+                "enough and only the deepest shadows keep any pigment"
+            )
         )
-        self.cyano_tannin_slider = CompactSlider("Tannin", 0.0, 0.5, conf.cyano_tannin)
+        self.cyano_tannin_slider = CompactSlider(tr("Tannin"), 0.0, 0.5, conf.cyano_tannin)
         self.cyano_tannin_slider.setToolTip(
-            "Tea, coffee or tannic acid. Re-develops the bleached iron as a brown iron tannate that "
-            "covers more than the pigment it replaced, so the print goes browner and a little deeper. "
-            "Bleach first for a full brown, on its own for a split blue-brown"
+            tr(
+                "Tea, coffee or tannic acid. Re-develops the bleached iron as a brown iron tannate that "
+                "covers more than the pigment it replaced, so the print goes browner and a little deeper. "
+                "Bleach first for a full brown, on its own for a split blue-brown"
+            )
         )
 
         row_exp = QHBoxLayout()

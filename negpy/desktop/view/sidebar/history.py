@@ -7,6 +7,7 @@ from negpy.desktop.view.shortcut_registry import tooltip_with_shortcut
 from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import section_subheader
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 _INDEX_ROLE = Qt.ItemDataRole.UserRole
 
@@ -23,23 +24,23 @@ class HistoryPanel(BaseSidebar):
     SIDE_MARGIN = THEME.space_xl
 
     def _init_ui(self) -> None:
-        self.work_print_header = section_subheader("WORK PRINTS")
+        self.work_print_header = section_subheader(tr("WORK PRINTS"))
         self.layout.addWidget(self.work_print_header)
 
         self.work_prints = QListWidget()
-        self.work_prints.setToolTip(_WORK_PRINT_TOOLTIP)
+        self.work_prints.setToolTip(tr(_WORK_PRINT_TOOLTIP))
         self.work_prints.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.work_prints.setMaximumHeight(120)
         self.layout.addWidget(self.work_prints, 0)
 
-        self.save_btn = QPushButton("Save work print")
-        self.save_btn.setToolTip(tooltip_with_shortcut("Keep the current edit as a named version", "save_work_print"))
+        self.save_btn = QPushButton(tr("Save work print"))
+        self.save_btn.setToolTip(tooltip_with_shortcut(tr("Keep the current edit as a named version"), "save_work_print"))
         self.layout.addWidget(self.save_btn)
 
-        self.layout.addWidget(section_subheader("EDIT HISTORY"))
+        self.layout.addWidget(section_subheader(tr("EDIT HISTORY")))
 
         self.list = QListWidget()
-        self.list.setToolTip("Click a step to jump to it (last 100 edits kept).")
+        self.list.setToolTip(tr("Click a step to jump to it (last 100 edits kept)."))
         self.list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.layout.addWidget(self.list, 1)
 
@@ -80,12 +81,12 @@ class HistoryPanel(BaseSidebar):
         session = self.controller.session
         if not self.controller.state.current_file_hash:
             return
-        name, ok = QInputDialog.getText(self, "Save work print", "Name:", text=session.next_work_print_name())
+        name, ok = QInputDialog.getText(self, tr("Save work print"), tr("Name:"), text=session.next_work_print_name())
         name = name.strip()
         if not (ok and name):
             return
         if name in session.work_prints():
-            replace = QMessageBox.question(self, "Replace work print", f"“{name}” already exists. Replace it?")
+            replace = QMessageBox.question(self, tr("Replace work print"), tr("“{name}” already exists. Replace it?").format(name=name))
             if replace != QMessageBox.StandardButton.Yes:
                 return
         session.save_work_print(name)
@@ -98,7 +99,7 @@ class HistoryPanel(BaseSidebar):
         if item is None:
             return
         menu = QMenu(self)
-        export_action = menu.addAction("Export this version…")
+        export_action = menu.addAction(tr("Export this version…"))
         if menu.exec(self.list.mapToGlobal(pos)) is export_action:
             self.controller.export_history_step(item.data(_INDEX_ROLE))
 
@@ -108,21 +109,21 @@ class HistoryPanel(BaseSidebar):
             return
         name = item.text()
         menu = QMenu(self)
-        export_action = menu.addAction("Export this version…")
-        rename_action = menu.addAction("Rename…")
-        delete_action = menu.addAction("Delete")
+        export_action = menu.addAction(tr("Export this version…"))
+        rename_action = menu.addAction(tr("Rename…"))
+        delete_action = menu.addAction(tr("Delete"))
         chosen = menu.exec(self.work_prints.mapToGlobal(pos))
         if chosen is export_action:
             self.controller.export_work_print(name)
         elif chosen is rename_action:
-            new_name, ok = QInputDialog.getText(self, "Rename work print", "Name:", text=name)
+            new_name, ok = QInputDialog.getText(self, tr("Rename work print"), tr("Name:"), text=name)
             if ok and new_name.strip():
                 self.controller.session.rename_work_print(name, new_name.strip())
         elif chosen is delete_action:
             if confirm_delete_named(
                 self,
-                "Work Print",
+                tr("Work Print"),
                 name,
-                informative="Work prints are never pruned by later edits — this is the only way one goes away.",
+                informative=tr("Work prints are never pruned by later edits — this is the only way one goes away."),
             ):
                 self.controller.session.delete_work_print(name)

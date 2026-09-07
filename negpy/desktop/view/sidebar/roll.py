@@ -11,6 +11,7 @@ from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import section_subheader
 from negpy.desktop.view.styles.theme import THEME
 from negpy.features.process.models import invalidate_local_bounds
+from negpy.kernel.system.i18n import tr
 
 
 class RollAnalysisSidebar(BaseSidebar):
@@ -21,12 +22,12 @@ class RollAnalysisSidebar(BaseSidebar):
     def _init_ui(self) -> None:
         conf = self.state.config.process
 
-        self.layout.addWidget(section_subheader("BATCH"))
+        self.layout.addWidget(section_subheader(tr("BATCH")))
 
         btns_row = QHBoxLayout()
-        self.analyze_roll_btn = QPushButton(" Batch Analysis")
+        self.analyze_roll_btn = QPushButton(tr(" Batch Analysis"))
         self.analyze_roll_btn.setIcon(qta.icon("fa5s.search", color=THEME.text_primary))
-        self.analyze_roll_btn.setToolTip("Scan every loaded file and compute a roll-wide average density and color balance baseline")
+        self.analyze_roll_btn.setToolTip(tr("Scan every loaded file and compute a roll-wide average density and color balance baseline"))
 
         btns_row.addWidget(self.analyze_roll_btn)
         self.layout.addLayout(btns_row)
@@ -34,42 +35,42 @@ class RollAnalysisSidebar(BaseSidebar):
         avg_row = QHBoxLayout()
         self.use_luma_avg_btn = self._small_toggle(
             "mdi6.film",
-            "Use Luma Average",
+            tr("Use Luma Average"),
             conf.use_luma_average,
-            "Take the tonal-range (black/white-point) baseline from Batch Analysis; color still re-derives per frame",
+            tr("Take the tonal-range (black/white-point) baseline from Batch Analysis; color still re-derives per frame"),
         )
 
         self.use_color_avg_btn = self._small_toggle(
             "mdi6.film",
-            "Use Color Average",
+            tr("Use Color Average"),
             conf.use_color_average,
-            "Take the per-channel color-balance baseline from Batch Analysis; luma range still re-derives per frame",
+            tr("Take the per-channel color-balance baseline from Batch Analysis; luma range still re-derives per frame"),
         )
 
         avg_row.addWidget(self.use_luma_avg_btn)
         avg_row.addWidget(self.use_color_avg_btn)
         self.layout.addLayout(avg_row)
 
-        self.layout.addWidget(section_subheader("ROLL"))
+        self.layout.addWidget(section_subheader(tr("ROLL")))
 
         self.roll_combo = QComboBox()
-        self.roll_combo.setPlaceholderText("Select Roll...")
-        self.roll_combo.setToolTip("Previously saved roll normalization baselines")
+        self.roll_combo.setPlaceholderText(tr("Select Roll..."))
+        self.roll_combo.setToolTip(tr("Previously saved roll normalization baselines"))
         self._refresh_rolls()
         self.layout.addWidget(self.roll_combo)
 
         roll_actions = QHBoxLayout()
-        self.load_roll_btn = QPushButton(" Load")
+        self.load_roll_btn = QPushButton(tr(" Load"))
         self.load_roll_btn.setIcon(qta.icon("fa5s.upload", color=THEME.text_primary))
-        self.load_roll_btn.setToolTip("Apply the selected roll's bounds and balance to the current workspace")
+        self.load_roll_btn.setToolTip(tr("Apply the selected roll's bounds and balance to the current workspace"))
 
-        self.save_roll_btn = QPushButton(" Save")
+        self.save_roll_btn = QPushButton(tr(" Save"))
         self.save_roll_btn.setIcon(qta.icon("fa5s.save", color=THEME.text_primary))
-        self.save_roll_btn.setToolTip("Save the current Batch Analysis result as a named reusable roll")
+        self.save_roll_btn.setToolTip(tr("Save the current Batch Analysis result as a named reusable roll"))
 
-        self.delete_roll_btn = QPushButton(" Delete")
+        self.delete_roll_btn = QPushButton(tr(" Delete"))
         self.delete_roll_btn.setIcon(qta.icon("fa5s.trash", color=THEME.text_primary))
-        self.delete_roll_btn.setToolTip("Remove the selected roll from the database")
+        self.delete_roll_btn.setToolTip(tr("Remove the selected roll from the database"))
 
         roll_actions.addWidget(self.load_roll_btn)
         roll_actions.addWidget(self.save_roll_btn)
@@ -139,7 +140,7 @@ class RollAnalysisSidebar(BaseSidebar):
         """
         Prompts user for name and saves current normalization.
         """
-        name, ok = QInputDialog.getText(self, "Save Roll", "Enter name for this roll:")
+        name, ok = QInputDialog.getText(self, tr("Save Roll"), tr("Enter name for this roll:"))
         if ok and name:
             self.controller.save_current_normalization_as_roll(name)
             self._refresh_rolls()
@@ -152,9 +153,9 @@ class RollAnalysisSidebar(BaseSidebar):
         name = self.roll_combo.currentText()
         if name and confirm_delete_named(
             self,
-            "Roll",
+            tr("Roll"),
             name,
-            informative="The frames keep their current look; only the saved roll baseline goes.",
+            informative=tr("The frames keep their current look; only the saved roll baseline goes."),
         ):
             self.controller.session.repo.delete_normalization_roll(name)
             self._refresh_rolls()

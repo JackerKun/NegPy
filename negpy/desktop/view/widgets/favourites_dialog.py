@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 
 from negpy.desktop.view.styles.templates import dialog_pane_qss, hint_label, pane_header_qss
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 _ID_ROLE = Qt.ItemDataRole.UserRole
 
@@ -59,7 +60,7 @@ class FavouritesDialog(QDialog):
         self._chosen_header = chosen_header
         self._defaults = [slider_id for slider_id in defaults if slider_id in known] if defaults is not None else None
 
-        self.setWindowTitle(title)
+        self.setWindowTitle(tr(title))
         self.resize(620, 560)
 
         root = QVBoxLayout(self)
@@ -71,7 +72,7 @@ class FavouritesDialog(QDialog):
         panes.addWidget(self._build_available(), 1)
         panes.addWidget(self._build_chosen(), 1)
         root.addLayout(panes)
-        root.addWidget(hint_label(hint))
+        root.addWidget(hint_label(tr(hint)))
         root.addLayout(self._build_footer())
 
         self._rebuild_chosen()
@@ -83,7 +84,7 @@ class FavouritesDialog(QDialog):
         layout.setContentsMargins(0, 0, THEME.space_xl, 0)
         layout.setSpacing(THEME.space_sm)
 
-        title = QLabel("AVAILABLE")
+        title = QLabel(tr("AVAILABLE"))
         title.setStyleSheet(pane_header_qss())
         layout.addWidget(title)
 
@@ -118,7 +119,7 @@ class FavouritesDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(THEME.space_sm)
 
-        title = QLabel(self._chosen_header)
+        title = QLabel(tr(self._chosen_header))
         title.setStyleSheet(pane_header_qss())
         layout.addWidget(title)
 
@@ -131,13 +132,13 @@ class FavouritesDialog(QDialog):
     def _build_footer(self) -> QHBoxLayout:
         row = QHBoxLayout()
         if self._defaults is not None:
-            restore = QPushButton("Restore Defaults")
+            restore = QPushButton(tr("Restore Defaults"))
             restore.clicked.connect(self._restore_defaults)
             row.addWidget(restore)
         row.addStretch()
-        cancel = QPushButton("Cancel")
+        cancel = QPushButton(tr("Cancel"))
         cancel.clicked.connect(self.reject)
-        self.apply_btn = QPushButton("Apply")
+        self.apply_btn = QPushButton(tr("Apply"))
         self.apply_btn.setProperty("primary", True)
         self.apply_btn.clicked.connect(self.accept)
         row.addWidget(cancel)

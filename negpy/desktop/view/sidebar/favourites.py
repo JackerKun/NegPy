@@ -10,6 +10,7 @@ from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.collapsible import hidden_by_gating
 from negpy.desktop.view.widgets.favourites_dialog import FavouritesDialog
 from negpy.desktop.view.widgets.sliders import clone_slider
+from negpy.kernel.system.i18n import tr
 
 _SETTING_KEY = "favourite_sliders"
 
@@ -37,15 +38,15 @@ class FavouritesSidebar(BaseSidebar):
 
     def _init_ui(self) -> None:
         row = QHBoxLayout()
-        self.edit_btn = QPushButton("  Edit Favourites")
+        self.edit_btn = QPushButton(tr("  Edit Favourites"))
         self.edit_btn.setIcon(qta.icon("fa5s.sliders-h", color=THEME.text_primary))
-        self.edit_btn.setToolTip("Choose which sliders appear here, and in what order")
+        self.edit_btn.setToolTip(tr("Choose which sliders appear here, and in what order"))
         self.edit_btn.clicked.connect(self._open_editor)
         row.addWidget(self.edit_btn)
         row.addStretch()
         self.layout.addLayout(row)
 
-        self.empty_hint = hint_label("No favourites yet — use Edit Favourites to pick the sliders you reach for most.")
+        self.empty_hint = hint_label(tr("No favourites yet — use Edit Favourites to pick the sliders you reach for most."))
         self.empty_hint.setWordWrap(True)
         self.layout.addWidget(self.empty_hint)
 

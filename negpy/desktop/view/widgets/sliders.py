@@ -13,10 +13,14 @@ from PyQt6.QtGui import QPainter, QColor, QPen
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QRect, QEvent
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.styles.templates import EditedDot, slider_label_qss, slider_handle_qss, wrap_tooltip
+from negpy.kernel.system.i18n import tr
 
 
 # text_secondary, not text_muted: #555 on the #161616 tooltip background is ~2.4:1.
-_RESET_HINT = f'<div style="color:{THEME.text_secondary};">Double-click to reset</div>'
+# A function, not a constant: tr() must run at call time, after the catalog loads.
+def _reset_hint() -> str:
+    return f'<div style="color:{THEME.text_secondary};">{tr("Double-click to reset")}</div>'
+
 
 # Quiet period after the last slider step before a render is asked for.
 _EMIT_INTERVAL_MS = 33
@@ -114,7 +118,7 @@ class BaseSlider(QWidget):
     dragEnded = pyqtSignal()
 
     def setToolTip(self, text: str) -> None:
-        super().setToolTip(wrap_tooltip(text, _RESET_HINT))
+        super().setToolTip(wrap_tooltip(text, _reset_hint()))
 
     def __init__(
         self,

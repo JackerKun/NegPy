@@ -7,6 +7,7 @@ from negpy.desktop.session import ToolMode
 from negpy.desktop.view.styles.templates import field_label
 from negpy.desktop.view.styles.theme import THEME
 from negpy.features.local.models import MaskShape
+from negpy.kernel.system.i18n import tr
 
 
 _MASK_ROW_H = 30
@@ -36,24 +37,30 @@ class LocalSidebar(BaseSidebar):
     def _init_ui(self) -> None:
         self.draw_btn = self._tool_toggle(
             "fa5s.draw-polygon",
-            "Draw Mask",
-            "Draw a new mask: click to place vertices; double-click, Enter, or a click near "
-            "the start closes; Esc cancels. Select a mask from the list to edit it (no need to "
-            "re-enter this tool): drag a vertex to move it, click an edge '+' dot to add a point, "
-            "right-click a vertex to delete it.",
+            tr("Draw Mask"),
+            tr(
+                "Draw a new mask: click to place vertices; double-click, Enter, or a click near "
+                "the start closes; Esc cancels. Select a mask from the list to edit it (no need to "
+                "re-enter this tool): drag a vertex to move it, click an edge '+' dot to add a point, "
+                "right-click a vertex to delete it."
+            ),
         )
         self.oval_btn = self._tool_toggle(
             "fa5s.circle",
-            "Oval",
-            "Burn through a hole in the card, or dodge with a wand: drag out an oval. Its three "
-            "handles move it (centre) and set each axis, so it can be stretched and tilted.",
+            tr("Oval"),
+            tr(
+                "Burn through a hole in the card, or dodge with a wand: drag out an oval. Its three "
+                "handles move it (centre) and set each axis, so it can be stretched and tilted."
+            ),
         )
         self.gradient_btn = self._tool_toggle(
             "fa5s.grip-lines",
-            "Card Edge",
-            "The graduated burn a printer makes by moving a card across the paper: drag from the "
-            "full-exposure edge (solid line) to where it fades out (dashed). The distance between "
-            "the two handles is the softness, so Feather does nothing here.",
+            tr("Card Edge"),
+            tr(
+                "The graduated burn a printer makes by moving a card across the paper: drag from the "
+                "full-exposure edge (solid line) to where it fades out (dashed). The distance between "
+                "the two handles is the softness, so Feather does nothing here."
+            ),
         )
         tool_row = QHBoxLayout()
         tool_row.addWidget(self.draw_btn)
@@ -62,7 +69,7 @@ class LocalSidebar(BaseSidebar):
         self.layout.addLayout(tool_row)
 
         self.mask_list = QListWidget()
-        self.mask_list.setToolTip("Click a mask to select it. Use the eye to show/hide its outline and the trash icon to delete it.")
+        self.mask_list.setToolTip(tr("Click a mask to select it. Use the eye to show/hide its outline and the trash icon to delete it."))
         self.mask_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.mask_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         # The row is a custom widget, so drop the app-wide item padding, margin and border that
@@ -74,30 +81,36 @@ class LocalSidebar(BaseSidebar):
 
         # Exposure-signed like the frame's Print Density and the Finishing edge burn: positive is
         # more light on the paper, so darker.
-        self.burn_slider = CompactSlider("Burn", -2.0, 2.0, 0.0, step=0.05, precision=100, has_neutral=True, unit=" st")
+        self.burn_slider = CompactSlider(tr("Burn"), -2.0, 2.0, 0.0, step=0.05, precision=100, has_neutral=True, unit=" st")
         self.burn_slider.setToolTip(
-            "Print exposure for the selected mask, in stops — positive burns (longer exposure, "
-            "darker paper), negative dodges (held back, brighter paper)"
+            tr(
+                "Print exposure for the selected mask, in stops — positive burns (longer exposure, "
+                "darker paper), negative dodges (held back, brighter paper)"
+            )
         )
 
-        self.feather_slider = CompactSlider("Feather", 0.0, 0.15, 0.04, step=0.005, precision=1000)
-        self.feather_slider.setToolTip("Edge softness for the selected mask")
+        self.feather_slider = CompactSlider(tr("Feather"), 0.0, 0.15, 0.04, step=0.005, precision=1000)
+        self.feather_slider.setToolTip(tr("Edge softness for the selected mask"))
 
         # Inverted like every other grade slider (Tone's ISO-R Grade, split grade, layer trims):
         # dragging right is harder paper, even though R falls.
-        self.grade_slider = CompactSlider("Grade", -40.0, 40.0, 0.0, step=5.0, precision=1, has_neutral=True, unit=" R", inverted=True)
+        self.grade_slider = CompactSlider(tr("Grade"), -40.0, 40.0, 0.0, step=5.0, precision=1, has_neutral=True, unit=" R", inverted=True)
         self.grade_slider.setToolTip(
-            "Print the selected mask at its own grade, in ISO-R points off the frame's Grade — "
-            "negative is harder, the darkroom's burn-in through the hard filter. The region's own "
-            "midtone holds, so this changes its contrast without moving its overall density."
+            tr(
+                "Print the selected mask at its own grade, in ISO-R points off the frame's Grade — "
+                "negative is harder, the darkroom's burn-in through the hard filter. The region's own "
+                "midtone holds, so this changes its contrast without moving its overall density."
+            )
         )
 
         self.invert_btn = self._labeled_toggle(
             "fa5s.exchange-alt",
-            " Invert",
+            tr(" Invert"),
             False,
-            "Act everywhere except inside the selected mask — the card itself instead of the hole "
-            "cut in it. Burn the surround and hold the face, in one mask.",
+            tr(
+                "Act everywhere except inside the selected mask — the card itself instead of the hole "
+                "cut in it. Burn the surround and hold the face, in one mask."
+            ),
         )
 
         slider_row = QHBoxLayout()
@@ -107,7 +120,7 @@ class LocalSidebar(BaseSidebar):
         self.layout.addWidget(self.feather_slider)
         self.layout.addWidget(self.invert_btn)
 
-        self.mask_count_label = field_label("0 masks")
+        self.mask_count_label = field_label(tr("{n} masks").format(n=0))
         self.layout.addWidget(self.mask_count_label)
 
         self.layout.addStretch()
@@ -152,36 +165,36 @@ class LocalSidebar(BaseSidebar):
 
     def _build_mask_row(self, i: int, mask) -> _MaskRow:
         if mask.stops > 0:
-            kind, color = "Burn", "#4A8FE8"
+            kind, color = tr("Burn"), "#4A8FE8"
         elif mask.stops < 0:
-            kind, color = "Dodge", "#E8C84A"
+            kind, color = tr("Dodge"), "#E8C84A"
         else:
             # A mask that only changes grade is neither: it re-prints the area at its own contrast
             # without adding or holding back exposure.
-            kind, color = "Grade", THEME.text_primary
+            kind, color = tr("Grade"), THEME.text_primary
         row = _MaskRow()
         lay = QHBoxLayout(row)
         lay.setContentsMargins(6, 2, 4, 2)
         lay.setSpacing(4)
 
-        values = [f"{mask.stops:+.2f} st"] if mask.stops else []
+        values = [tr("{stops} st").format(stops=f"{mask.stops:+.2f}")] if mask.stops else []
         if mask.grade:
-            values.append(f"{mask.grade:+.0f} R")
+            values.append(tr("{grade} R").format(grade=f"{mask.grade:+.0f}"))
         if mask.invert:
-            values.append("inv")
+            values.append(tr("inv"))
         shape_icon = QLabel()
         shape_icon.setPixmap(qta.icon(_SHAPE_ICONS[mask.shape], color=color).pixmap(12, 12))
         shape_icon.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        label = QLabel(f"{i + 1}.  {kind}   " + "  ".join(values))
+        label = QLabel(tr("{index}.  {kind}   {values}").format(index=i + 1, kind=kind, values="  ".join(values)))
         label.setStyleSheet(f"color: {color};")
         label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
 
         visible = i not in self.state.local_hidden_masks
         eye = self._row_icon_btn("fa5s.eye" if visible else "fa5s.eye-slash", checkable=True)
         eye.setChecked(visible)
-        eye.setToolTip("Show or hide this mask's outline on the canvas")
+        eye.setToolTip(tr("Show or hide this mask's outline on the canvas"))
         delete = self._row_icon_btn("fa5s.trash-alt", checkable=False)
-        delete.setToolTip("Delete this mask")
+        delete.setToolTip(tr("Delete this mask"))
 
         lay.addWidget(shape_icon)
         lay.addWidget(label)
@@ -206,7 +219,7 @@ class LocalSidebar(BaseSidebar):
                 btn.setChecked(self.state.active_tool == mode)
 
             n = len(conf.masks)
-            self.mask_count_label.setText(f"{n} mask{'s' if n != 1 else ''}")
+            self.mask_count_label.setText(tr("{n} mask").format(n=n) if n == 1 else tr("{n} masks").format(n=n))
 
             idx = self.state.local_selected_mask
             has_selection = 0 <= idx < n

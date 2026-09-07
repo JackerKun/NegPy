@@ -16,6 +16,7 @@ from negpy.domain.models import CROP_RATIO_CHOICES, canonical_crop_ratio
 from negpy.features.geometry.logic import has_manual_crop
 from negpy.features.geometry.models import FINE_ROTATION_LIMIT, AutocropMode
 from negpy.features.process.models import invalidate_local_bounds
+from negpy.kernel.system.i18n import tr
 
 
 class GeometrySidebar(BaseSidebar):
@@ -33,65 +34,65 @@ class GeometrySidebar(BaseSidebar):
     def _init_ui(self) -> None:
         conf = self.state.config.geometry
 
-        self.layout.addWidget(section_subheader("CROP"))
+        self.layout.addWidget(section_subheader(tr("CROP")))
 
         ratio_row = QHBoxLayout()
-        ratio_row.addWidget(self._field_label("Ratio"))
+        ratio_row.addWidget(self._field_label(tr("Ratio")))
         self.ratio_combo = QComboBox()
         # One entry per shape (see CROP_RATIO_CHOICES). The crop tool auto-orients to match the
         # current drag, so a separate portrait entry for every ratio would duplicate the same
         # shape twice.
         self.ratio_combo.addItems([r.value for r in CROP_RATIO_CHOICES])
         self.ratio_combo.setCurrentText(canonical_crop_ratio(conf.autocrop_ratio))
-        self.ratio_combo.setPlaceholderText("Select Ratio...")
-        self.ratio_combo.setToolTip(wrap_tooltip("Aspect ratio the auto crop and the crop tool snap to"))
+        self.ratio_combo.setPlaceholderText(tr("Select Ratio..."))
+        self.ratio_combo.setToolTip(wrap_tooltip(tr("Aspect ratio the auto crop and the crop tool snap to")))
         ratio_row.addWidget(self.ratio_combo, 1)
 
-        self.detect_ratio_btn = self._icon_action("fa5s.crosshairs", "Detect closest aspect ratio from the film frame")
+        self.detect_ratio_btn = self._icon_action("fa5s.crosshairs", tr("Detect closest aspect ratio from the film frame"))
         ratio_row.addWidget(self.detect_ratio_btn)
 
         self.layout.addLayout(ratio_row)
 
         btn_row = QHBoxLayout()
-        self.manual_crop_btn = self._labeled_toggle("fa5s.crop-alt", " Crop", False, "Draw the crop by hand on the canvas")
+        self.manual_crop_btn = self._labeled_toggle("fa5s.crop-alt", tr(" Crop"), False, tr("Draw the crop by hand on the canvas"))
 
-        self.clear_crop_btn = self._labeled_action("fa5s.undo", " Reset", "Reset crop: clear the manual crop and disable auto crop")
+        self.clear_crop_btn = self._labeled_action("fa5s.undo", tr(" Reset"), tr("Reset crop: clear the manual crop and disable auto crop"))
 
         btn_row.addWidget(self.manual_crop_btn, 1)
         btn_row.addWidget(self.clear_crop_btn, 1)
         self.layout.addLayout(btn_row)
 
         guide_row = QHBoxLayout()
-        guide_row.addWidget(self._field_label("Guide"))
+        guide_row.addWidget(self._field_label(tr("Guide")))
         self.guide_combo = QComboBox()
         for guide, label in GUIDE_LABELS.items():
-            self.guide_combo.addItem(label, guide.value)
+            self.guide_combo.addItem(tr(label), guide.value)
         self.guide_combo.setCurrentIndex(self.guide_combo.findData(self.state.crop_guide))
         self.guide_combo.setToolTip(
-            tooltip_with_shortcut("Composition guide shown in the crop tool", ("crop_guide_next", "crop_guide_orient"))
+            tooltip_with_shortcut(tr("Composition guide shown in the crop tool"), ("crop_guide_next", "crop_guide_orient"))
         )
         guide_row.addWidget(self.guide_combo, 1)
         self.guide_orient_btn = self._icon_action(
-            "fa5s.redo", tooltip_with_shortcut("Rotate the guide orientation (spiral, triangles)", "crop_guide_orient")
+            "fa5s.redo", tooltip_with_shortcut(tr("Rotate the guide orientation (spiral, triangles)"), "crop_guide_orient")
         )
         guide_row.addWidget(self.guide_orient_btn)
         self._sync_guide_orient_btn()
         self.layout.addLayout(guide_row)
 
-        self.layout.addWidget(section_subheader("AUTO CROP"))
+        self.layout.addWidget(section_subheader(tr("AUTO CROP")))
 
         mode_row = QHBoxLayout()
-        mode_row.addWidget(self._field_label("Mode"))
+        mode_row.addWidget(self._field_label(tr("Mode")))
         self.mode_combo = QComboBox()
-        self.mode_combo.addItem("Image only", AutocropMode.IMAGE.value)
-        self.mode_combo.addItem("Film edge", AutocropMode.FILM.value)
+        self.mode_combo.addItem(tr("Image only"), AutocropMode.IMAGE.value)
+        self.mode_combo.addItem(tr("Film edge"), AutocropMode.FILM.value)
         self.mode_combo.setCurrentIndex(self.mode_combo.findData(conf.autocrop_mode))
-        self.mode_combo.setToolTip("Auto crop target: exposed image only, or full film including rebate/sprockets")
+        self.mode_combo.setToolTip(tr("Auto crop target: exposed image only, or full film including rebate/sprockets"))
         mode_row.addWidget(self.mode_combo, 1)
         self.layout.addLayout(mode_row)
 
         self.offset_slider = CompactSlider(
-            "Crop Offset",
+            tr("Crop Offset"),
             -5.0,
             100.0,
             float(conf.autocrop_offset),
@@ -100,7 +101,7 @@ class GeometrySidebar(BaseSidebar):
             unit=" px",
         )
         self.rebate_trim_slider = CompactSlider(
-            "Rebate Trim",
+            tr("Rebate Trim"),
             0.0,
             150.0,
             conf.autocrop_rebate_trim * 100.0,
@@ -109,8 +110,10 @@ class GeometrySidebar(BaseSidebar):
             unit="%",
         )
         self.rebate_trim_slider.setToolTip(
-            "How far into the detected rebate auto crop cuts: 0% stops at the film edge, "
-            "100% lands on the image edge, above 100% bites in to clear a white border"
+            tr(
+                "How far into the detected rebate auto crop cuts: 0% stops at the film edge, "
+                "100% lands on the image edge, above 100% bites in to clear a white border"
+            )
         )
         self.rebate_trim_slider.setEnabled(conf.autocrop_mode == AutocropMode.IMAGE)
 
@@ -121,46 +124,52 @@ class GeometrySidebar(BaseSidebar):
 
         # Auto crop actions: apply to this frame, or to the whole roll.
         auto_row = QHBoxLayout()
-        self.reset_crop_btn = self._labeled_toggle("fa5s.magic", " Auto", False, "Find the frame edges and crop to them")
+        self.reset_crop_btn = self._labeled_toggle("fa5s.magic", tr(" Auto"), False, tr("Find the frame edges and crop to them"))
 
         self.auto_crop_all_btn = self._labeled_action(
             "fa5s.layer-group",
-            " Batch Autocrop",
-            "Analyze all visible landscape frames as one roll. Confident frames calibrate weak ones; "
-            "manual and ambiguous crops are preserved. Runs before Batch Analysis.",
+            tr(" Batch Autocrop"),
+            tr(
+                "Analyze all visible landscape frames as one roll. Confident frames calibrate weak ones; "
+                "manual and ambiguous crops are preserved. Runs before Batch Analysis."
+            ),
         )
         self.auto_crop_all_btn.setEnabled(conf.autocrop_mode == AutocropMode.IMAGE)
         auto_row.addWidget(self.reset_crop_btn, 1)
         auto_row.addWidget(self.auto_crop_all_btn, 1)
         self.layout.addLayout(auto_row)
 
-        self.layout.addWidget(section_subheader("ALIGNMENT"))
+        self.layout.addWidget(section_subheader(tr("ALIGNMENT")))
 
         align_row = QHBoxLayout()
-        self.straighten_btn = self._tool_toggle("fa5s.ruler", "", "Draw a line along a horizon or edge to level the frame")
+        self.straighten_btn = self._tool_toggle("fa5s.ruler", "", tr("Draw a line along a horizon or edge to level the frame"))
         self.straighten_btn.setFixedWidth(ICON_BUTTON_WIDTH)
 
         # The slider shows the photographer's convention, where positive is clockwise on screen.
         # Internally geometry.fine_rotation keeps the cv2/warp convention, where positive is
         # counter-clockwise and flip-independent because flips apply before fine rotation, so
         # saved edits keep their meaning: display = -stored at this boundary.
-        self.fine_rot_slider = CompactSlider("Fine Rotation", -FINE_ROTATION_LIMIT, FINE_ROTATION_LIMIT, -conf.fine_rotation, unit="°")
+        self.fine_rot_slider = CompactSlider(tr("Fine Rotation"), -FINE_ROTATION_LIMIT, FINE_ROTATION_LIMIT, -conf.fine_rotation, unit="°")
         align_row.addWidget(self.fine_rot_slider, 1)
         align_row.addWidget(self.straighten_btn, 0)
         self.layout.addLayout(align_row)
 
-        self.converge_v_slider = CompactSlider("Tilt", -15.0, 15.0, conf.converge_v, unit="%")
+        self.converge_v_slider = CompactSlider(tr("Tilt"), -15.0, 15.0, conf.converge_v, unit="%")
         self.converge_v_slider.setToolTip(
-            "Easel Tilt: tip the easel about a horizontal axis to straighten converging verticals, "
-            "the building that leans back because the camera pointed up. Positive stretches the top "
-            "edge. Per-cent of the frame, what you would measure on the easel, not a tilt angle: "
-            "the same tilt keystones differently at every enlargement."
+            tr(
+                "Easel Tilt: tip the easel about a horizontal axis to straighten converging verticals, "
+                "the building that leans back because the camera pointed up. Positive stretches the top "
+                "edge. Per-cent of the frame, what you would measure on the easel, not a tilt angle: "
+                "the same tilt keystones differently at every enlargement."
+            )
         )
-        self.converge_h_slider = CompactSlider("Swing", -15.0, 15.0, conf.converge_h, unit="%")
+        self.converge_h_slider = CompactSlider(tr("Swing"), -15.0, 15.0, conf.converge_h, unit="%")
         self.converge_h_slider.setToolTip(
-            "Easel Swing: the same movement about a vertical axis, for converging horizontals. A "
-            "wall shot from one side, or a copy stand not square to the film. Positive stretches "
-            "the left edge."
+            tr(
+                "Easel Swing: the same movement about a vertical axis, for converging horizontals. A "
+                "wall shot from one side, or a copy stand not square to the film. Positive stretches "
+                "the left edge."
+            )
         )
         converge_row = QHBoxLayout()
         converge_row.addWidget(self.converge_v_slider)
@@ -168,12 +177,12 @@ class GeometrySidebar(BaseSidebar):
         self.layout.addLayout(converge_row)
 
         self.distortion_slider = CompactSlider(
-            "Distortion Correction", -0.10, 0.10, conf.distortion_k1, step=0.001, precision=1000, has_neutral=True
+            tr("Distortion Correction"), -0.10, 0.10, conf.distortion_k1, step=0.001, precision=1000, has_neutral=True
         )
         # Nothing derives the readout's decimals from `precision`, so a 0.001 step needs both.
         self.distortion_slider.spin.setDecimals(3)
         self.distortion_slider.setToolTip(
-            "Radial lens distortion. Positive corrects barrel, negative pincushion. Use the film rebate as a straight reference."
+            tr("Radial lens distortion. Positive corrects barrel, negative pincushion. Use the film rebate as a straight reference.")
         )
         self.layout.addWidget(self.distortion_slider)
 

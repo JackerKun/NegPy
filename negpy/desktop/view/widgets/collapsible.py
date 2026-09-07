@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 import qtawesome as qta
 
 
@@ -64,7 +65,7 @@ class CollapsibleSection(QWidget):
             self.select_box = QCheckBox()
             self.select_box.setTristate(True)
             self.select_box.setCursor(Qt.CursorShape.PointingHandCursor)
-            self.select_box.setToolTip(f"Select every {title} setting")
+            self.select_box.setToolTip(tr("Select every {section} setting").format(section=title))
             self.select_box.clicked.connect(self._on_select_clicked)
             btn_layout.addWidget(self.select_box)
 
@@ -90,7 +91,7 @@ class CollapsibleSection(QWidget):
             self.info_btn.setFixedSize(20, 20)
             self.info_btn.setIconSize(QSize(11, 11))
             self.info_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            self.info_btn.setToolTip(f"What am I looking at? — {title} guide")
+            self.info_btn.setToolTip(tr("What am I looking at? — {section} guide").format(section=title))
             self.info_btn.setObjectName("collapsible_reset_btn")
             self.info_btn.clicked.connect(self.info_requested)
             btn_layout.addWidget(self.info_btn)
@@ -100,7 +101,7 @@ class CollapsibleSection(QWidget):
         self.reset_btn.setFixedSize(20, 20)
         self.reset_btn.setIconSize(QSize(10, 10))
         self.reset_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.reset_btn.setToolTip(f"Reset {title} to defaults")
+        self.reset_btn.setToolTip(tr("Reset {section} to defaults").format(section=title))
         self.reset_btn.setVisible(False)
         self.reset_btn.setObjectName("collapsible_reset_btn")
         self.reset_btn.clicked.connect(self._on_reset_clicked)

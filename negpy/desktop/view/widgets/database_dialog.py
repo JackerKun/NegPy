@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
 )
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.text import human_bytes
 
 # (stat key, display label). The order is the display order, and a separator sits between
@@ -46,14 +47,14 @@ class DatabaseDialog(QDialog):
         super().__init__(parent)
         self.repo = repo
         self.controller = controller
-        self.setWindowTitle("Manage Database")
+        self.setWindowTitle(tr("Manage Database"))
         self.setMinimumWidth(420)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(THEME.space_2xl, THEME.space_2xl, THEME.space_2xl, THEME.space_2xl)
         root.setSpacing(THEME.space_xl)
 
-        header = QLabel("Stored data")
+        header = QLabel(tr("Stored data"))
         header.setStyleSheet(f"color: {THEME.text_primary}; font-size: {THEME.font_size_header}px; font-weight: {THEME.weight_semibold};")
         root.addWidget(header)
 
@@ -69,9 +70,11 @@ class DatabaseDialog(QDialog):
         root.addWidget(self._size_label)
 
         note = QLabel(
-            "Clearing only affects this app's database and its thumbnail cache. Source files are "
-            "never touched. If you export .negpy sidecars, those still exist next to your images "
-            "and can restore an edit when that image is reloaded."
+            tr(
+                "Clearing only affects this app's database and its thumbnail cache. Source files are "
+                "never touched. If you export .negpy sidecars, those still exist next to your images "
+                "and can restore an edit when that image is reloaded."
+            )
         )
         note.setWordWrap(True)
         note.setStyleSheet(f"color: {THEME.text_hint}; font-size: {THEME.font_size_small}px;")
@@ -84,21 +87,23 @@ class DatabaseDialog(QDialog):
         row = QHBoxLayout()
         row.setSpacing(THEME.space_lg)
 
-        self.clear_edits_btn = QPushButton("Clear Saved Edits")
-        self.clear_edits_btn.setToolTip("Drop saved per-image edits, undo history and keep/reject marks. Keeps presets and rig profiles.")
+        self.clear_edits_btn = QPushButton(tr("Clear Saved Edits"))
+        self.clear_edits_btn.setToolTip(
+            tr("Drop saved per-image edits, undo history and keep/reject marks. Keeps presets and rig profiles.")
+        )
         self.clear_edits_btn.clicked.connect(self._on_clear_edits)
 
-        self.clear_thumbs_btn = QPushButton("Clear Thumbnails")
-        self.clear_thumbs_btn.setToolTip("Delete the cached file-grid thumbnails. They are regenerated as images are loaded.")
+        self.clear_thumbs_btn = QPushButton(tr("Clear Thumbnails"))
+        self.clear_thumbs_btn.setToolTip(tr("Delete the cached file-grid thumbnails. They are regenerated as images are loaded."))
         self.clear_thumbs_btn.clicked.connect(self._on_clear_thumbnails)
 
-        self.clear_library_btn = QPushButton("Clear Library")
-        self.clear_library_btn.setToolTip("Forget which folders your library points at. The folders and their files are untouched.")
+        self.clear_library_btn = QPushButton(tr("Clear Library"))
+        self.clear_library_btn.setToolTip(tr("Forget which folders your library points at. The folders and their files are untouched."))
         self.clear_library_btn.clicked.connect(self._on_clear_library)
 
-        self.reset_all_btn = QPushButton("Reset Everything")
+        self.reset_all_btn = QPushButton(tr("Reset Everything"))
         self.reset_all_btn.setToolTip(
-            "Wipe the entire database: edits, history, marks, rig profiles, export presets and all app preferences."
+            tr("Wipe the entire database: edits, history, marks, rig profiles, export presets and all app preferences.")
         )
         self.reset_all_btn.setStyleSheet(
             f"QPushButton {{ background: {THEME.accent_primary}; color: #FFFFFF; border: none; "
@@ -107,7 +112,7 @@ class DatabaseDialog(QDialog):
         )
         self.reset_all_btn.clicked.connect(self._on_reset_all)
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(tr("Close"))
         close_btn.clicked.connect(self.accept)
 
         row.addWidget(self.clear_edits_btn)
@@ -127,7 +132,8 @@ class DatabaseDialog(QDialog):
         self._grid.addWidget(line, grid_row, 0, 1, 2)
 
     def _stat_row(self, grid_row: int, key: str, label: str) -> None:
-        name = QLabel(label)
+        # Labels sit in module-level row tables, so translation happens here, at display.
+        name = QLabel(tr(label))
         name.setStyleSheet(f"color: {THEME.text_secondary}; font-size: {THEME.font_size_base}px;")
         value = QLabel("0")
         value.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -159,14 +165,16 @@ class DatabaseDialog(QDialog):
         except Exception:
             for lbl in self._value_labels.values():
                 lbl.setText("—")
-            self._size_label.setText("Could not read the database.")
+            self._size_label.setText(tr("Could not read the database."))
             return
         stats["thumbnails"] = thumb_count
         stats["library_roots"] = len(self.repo.get_global_setting("library_roots", []) or [])
         for key, lbl in self._value_labels.items():
             lbl.setText(f"{stats.get(key, 0):,}")
         db_bytes = stats.get("edits_db_bytes", 0) + stats.get("settings_db_bytes", 0)
-        self._size_label.setText(f"On disk: {human_bytes(db_bytes)} databases + {human_bytes(thumb_bytes)} thumbnails")
+        self._size_label.setText(
+            tr("On disk: {db} databases + {thumbs} thumbnails").format(db=human_bytes(db_bytes), thumbs=human_bytes(thumb_bytes))
+        )
         self._update_enabled(stats)
 
     def _update_enabled(self, stats: dict) -> None:
@@ -178,13 +186,15 @@ class DatabaseDialog(QDialog):
         self.clear_library_btn.setEnabled(stats.get("library_roots", 0) > 0)
 
     def _confirm(self, title: str, text: str, ok_label: str, informative: str = "This cannot be undone.") -> bool:
+        # Callers pass English literals; the default informative is a def-time constant. Both
+        # are translated here, at display.
         box = QMessageBox(self)
         box.setIcon(QMessageBox.Icon.Warning)
-        box.setWindowTitle(title)
-        box.setText(text)
-        box.setInformativeText(informative)
-        ok = box.addButton(ok_label, QMessageBox.ButtonRole.DestructiveRole)
-        box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        box.setWindowTitle(tr(title))
+        box.setText(tr(text))
+        box.setInformativeText(tr(informative))
+        ok = box.addButton(tr(ok_label), QMessageBox.ButtonRole.DestructiveRole)
+        box.addButton(tr("Cancel"), QMessageBox.ButtonRole.RejectRole)
         box.setDefaultButton(box.buttons()[-1])  # default to Cancel
         box.exec()
         return box.clickedButton() is ok
@@ -200,7 +210,7 @@ class DatabaseDialog(QDialog):
         try:
             self.repo.clear_saved_edits()
         except Exception as exc:
-            QMessageBox.critical(self, "Clear failed", f"Could not clear the database:\n{exc}")
+            QMessageBox.critical(self, tr("Clear failed"), tr("Could not clear the database:\n{error}").format(error=exc))
         self._refresh()
 
     def _on_clear_thumbnails(self) -> None:
@@ -214,7 +224,7 @@ class DatabaseDialog(QDialog):
         try:
             self.controller.clear_thumbnail_cache()
         except Exception as exc:
-            QMessageBox.critical(self, "Clear failed", f"Could not clear the thumbnail cache:\n{exc}")
+            QMessageBox.critical(self, tr("Clear failed"), tr("Could not clear the thumbnail cache:\n{error}").format(error=exc))
         self._refresh()
 
     def _on_clear_library(self) -> None:
@@ -229,7 +239,7 @@ class DatabaseDialog(QDialog):
         try:
             self.repo.save_global_setting("library_roots", [])
         except Exception as exc:
-            QMessageBox.critical(self, "Clear failed", f"Could not clear the library:\n{exc}")
+            QMessageBox.critical(self, tr("Clear failed"), tr("Could not clear the library:\n{error}").format(error=exc))
         self.controller.library_cleared.emit()
         self._refresh()
 
@@ -245,5 +255,5 @@ class DatabaseDialog(QDialog):
         try:
             self.repo.reset_everything()
         except Exception as exc:
-            QMessageBox.critical(self, "Reset failed", f"Could not reset the database:\n{exc}")
+            QMessageBox.critical(self, tr("Reset failed"), tr("Could not reset the database:\n{error}").format(error=exc))
         self._refresh()

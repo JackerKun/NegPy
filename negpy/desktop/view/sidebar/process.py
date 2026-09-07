@@ -19,6 +19,7 @@ from negpy.features.exposure.models import EXPOSURE_CONSTANTS
 from negpy.features.hdr.logic import output_scale
 from negpy.features.hdr.models import ANCHOR_EV_UNSET, hdr_active
 from negpy.features.process.models import ProcessMode, cast_removal_for_mode, invalidate_local_bounds
+from negpy.kernel.system.i18n import tr
 
 # Luma Range Clip slider mapping: positions 0 to 100 clip the histogram tails, and
 # negative positions map to an outward log-density margin, a gentler-than-zero stretch.
@@ -86,10 +87,10 @@ class ProcessSidebar(BaseSidebar):
         mode_col.setContentsMargins(0, 0, 0, 0)
         mode_col.setSpacing(THEME.space_sm)
 
-        self.autodetect_btn = self._small_toggle("mdi6.auto-fix", "", False, "Auto-detect the film process on load")
+        self.autodetect_btn = self._small_toggle("mdi6.auto-fix", "", False, tr("Auto-detect the film process on load"))
         self.autodetect_btn.setFixedWidth(28)
         header_row = QHBoxLayout()
-        header_row.addWidget(section_subheader("Process"))
+        header_row.addWidget(section_subheader(tr("Process")))
         header_row.addStretch(1)
         header_row.addWidget(self.autodetect_btn)
         mode_col.addLayout(header_row)
@@ -100,7 +101,8 @@ class ProcessSidebar(BaseSidebar):
         self.mode_btn_group = QButtonGroup(self)
         self.mode_btn_group.setExclusive(True)
         for i, (mode, label, color, tip) in enumerate(_MODES):
-            btn = self._labeled_toggle("mdi6.film", label, mode == conf.process_mode, tip)
+            # Labels and tips are translated at use: _MODES is a module-level constant.
+            btn = self._labeled_toggle("mdi6.film", tr(label), mode == conf.process_mode, tr(tip))
             btn.setIcon(qta.icon("mdi6.film", color=color))
             self.mode_btn_group.addButton(btn, i)
             mode_row.addWidget(btn, 1)
@@ -110,22 +112,24 @@ class ProcessSidebar(BaseSidebar):
             "fa5s.lock",
             "",
             False,
-            "Lock Bounds — freeze normalization bounds so crop and analysis sliders no longer re-analyze",
+            tr("Lock Bounds — freeze normalization bounds so crop and analysis sliders no longer re-analyze"),
         )
 
         buf_row = QHBoxLayout()
-        self.analysis_buffer_slider = CompactSlider("Analysis Buffer", 0.0, 0.25, conf.analysis_buffer)
+        self.analysis_buffer_slider = CompactSlider(tr("Analysis Buffer"), 0.0, 0.25, conf.analysis_buffer)
         self.analysis_region_btn = self._tool_toggle(
             "fa5s.vector-square",
             "",
-            "Draw a freehand analysis region on the image — the meters read exactly that area "
-            "(overrides the Analysis Buffer). Double-click inside it to confirm.",
+            tr(
+                "Draw a freehand analysis region on the image — the meters read exactly that area "
+                "(overrides the Analysis Buffer). Double-click inside it to confirm."
+            ),
         )
         # Confirming a region closes the tool by unchecking the toggle, so the dot is the only
         # cue left that it still overrides the Analysis Buffer slider.
         self.analysis_region_btn.edited_dot = EditedDot(self.analysis_region_btn)
         self.clear_analysis_region_btn = self._icon_action(
-            "fa5s.times", "Clear the freehand analysis region (fall back to the Analysis Buffer)", width=None
+            "fa5s.times", tr("Clear the freehand analysis region (fall back to the Analysis Buffer)"), width=None
         )
         # The slider takes half the row and the three buttons split the other half. Equal stretch,
         # not fixed widths, is what keeps them the same size.
@@ -137,11 +141,11 @@ class ProcessSidebar(BaseSidebar):
         clip_row = QHBoxLayout()
         initial_luma_slider_val = _luma_range_value_to_slider(conf.luma_range_clip)
         self.luma_range_clip_slider = CompactSlider(
-            "Luma Range Clip", -100, 100, initial_luma_slider_val, precision=1, step=1, has_neutral=True
+            tr("Luma Range Clip"), -100, 100, initial_luma_slider_val, precision=1, step=1, has_neutral=True
         )
         initial_color_slider_val = _color_value_to_slider(conf.color_range_clip)
         self.color_range_clip_slider = CompactSlider(
-            "Color Clip", -100, 100, initial_color_slider_val, precision=1, step=1, has_neutral=True
+            tr("Color Clip"), -100, 100, initial_color_slider_val, precision=1, step=1, has_neutral=True
         )
         clip_row.addWidget(self.luma_range_clip_slider)
         clip_row.addWidget(self.color_range_clip_slider)
@@ -149,15 +153,17 @@ class ProcessSidebar(BaseSidebar):
 
         # Channel selector scoped to the White/Black Point row below it. Global = the shared
         # offsets, R/G/B = the per-layer trims (film base, Dmax).
-        self.ch_global_btn = self._labeled_toggle("fa5s.globe", " Global", True, "Global — shared white/black point offsets (all layers)")
+        self.ch_global_btn = self._labeled_toggle(
+            "fa5s.globe", tr(" Global"), True, tr("Global — shared white/black point offsets (all layers)")
+        )
         self.ch_r_btn = self._labeled_toggle(
-            "fa5s.circle", " Red", False, "Red layer — per-layer white/black point trims (cyan-dye film base / Dmax)"
+            "fa5s.circle", tr(" Red"), False, tr("Red layer — per-layer white/black point trims (cyan-dye film base / Dmax)")
         )
         self.ch_g_btn = self._labeled_toggle(
-            "fa5s.circle", " Green", False, "Green layer — per-layer white/black point trims (magenta-dye film base / Dmax)"
+            "fa5s.circle", tr(" Green"), False, tr("Green layer — per-layer white/black point trims (magenta-dye film base / Dmax)")
         )
         self.ch_b_btn = self._labeled_toggle(
-            "fa5s.circle", " Blue", False, "Blue layer — per-layer white/black point trims (yellow-dye film base / Dmax)"
+            "fa5s.circle", tr(" Blue"), False, tr("Blue layer — per-layer white/black point trims (yellow-dye film base / Dmax)")
         )
         for btn, color in zip((self.ch_r_btn, self.ch_g_btn, self.ch_b_btn), _CH_COLORS):
             btn.setIcon(qta.icon("fa5s.circle", color=color))
@@ -175,8 +181,8 @@ class ProcessSidebar(BaseSidebar):
         self.layout.addLayout(ch_row)
 
         wp_bp_row = QHBoxLayout()
-        self.white_point_slider = CompactSlider("White Point", -0.25, 0.25, conf.white_point_offset, has_neutral=True)
-        self.black_point_slider = CompactSlider("Black Point", -0.25, 0.25, conf.black_point_offset, has_neutral=True)
+        self.white_point_slider = CompactSlider(tr("White Point"), -0.25, 0.25, conf.white_point_offset, has_neutral=True)
+        self.black_point_slider = CompactSlider(tr("Black Point"), -0.25, 0.25, conf.black_point_offset, has_neutral=True)
         wp_bp_row.addWidget(self.white_point_slider)
         wp_bp_row.addWidget(self.black_point_slider)
         self.layout.addLayout(wp_bp_row)
@@ -185,15 +191,17 @@ class ProcessSidebar(BaseSidebar):
         # happen to have been shot. The menu still offers those and writes a frame name; this
         # writes a value and wins. 0 = the reference, the brightest unclipped frame, which is the
         # most a merge can open at. output_scale clamps above it.
-        self.render_ev_slider = CompactSlider("Render Exposure", -4.0, 0.0, 0.0, step=0.05, unit=" EV")
+        self.render_ev_slider = CompactSlider(tr("Render Exposure"), -4.0, 0.0, 0.0, step=0.05, unit=" EV")
         self.render_ev_slider.setToolTip(
             wrap_tooltip(
-                "Which exposure a merged bracket renders at, in stops below the reference frame. "
-                "The reference is the longest capture that does not clip, so it is the brightest "
-                "the merge can open at — a slide's own highlights are denser than clear film, so "
-                "that is usually brighter than the shot you metered for.<br><br>"
-                "Right-click the frame for <b>Render exposure</b> to snap to an exposure you "
-                "actually shot; this slider goes anywhere between them."
+                tr(
+                    "Which exposure a merged bracket renders at, in stops below the reference frame. "
+                    "The reference is the longest capture that does not clip, so it is the brightest "
+                    "the merge can open at — a slide's own highlights are denser than clear film, so "
+                    "that is usually brighter than the shot you metered for.<br><br>"
+                    "Right-click the frame for <b>Render exposure</b> to snap to an exposure you "
+                    "actually shot; this slider goes anywhere between them."
+                )
             )
         )
         # Live again: the merge is cached unscaled, so a change of exposure is one multiply on the
@@ -205,9 +213,9 @@ class ProcessSidebar(BaseSidebar):
 
         self.normalize_e6_btn = self._labeled_toggle(
             "fa5s.magic",
-            " Normalize",
+            tr(" Normalize"),
             conf.e6_normalize,
-            (
+            tr(
                 "Normalize: stretch the histogram to the full dynamic range, metered per frame, "
                 "and print it through the paper model. This is a rescue tool for <b>faded or "
                 "expired slides</b>, where the dyes have lost their range and a per-frame stretch "
@@ -223,15 +231,17 @@ class ProcessSidebar(BaseSidebar):
         self.layout.addWidget(self.render_ev_slider)
 
         # Disabled widgets get no hover, so the detail hangs off the hint, not the button.
-        self.normalize_merged_hint = hint_label("Not applied to a merged bracket.")
+        self.normalize_merged_hint = hint_label(tr("Not applied to a merged bracket."))
         self.normalize_merged_hint.setToolTip(
             wrap_tooltip(
-                "A merge already places the tones: Render exposure picks which exposure it "
-                "prints at. Normalize would meter the merged frame and stretch it to full, "
-                "which divides that choice straight back out — the anchor would stop doing "
-                "anything. The two are not wanted together in any case: Normalize rescues "
-                "faded film, and fading compresses the density range a bracket exists to "
-                "capture. Unmerge the frame if you need the stretch."
+                tr(
+                    "A merge already places the tones: Render exposure picks which exposure it "
+                    "prints at. Normalize would meter the merged frame and stretch it to full, "
+                    "which divides that choice straight back out — the anchor would stop doing "
+                    "anything. The two are not wanted together in any case: Normalize rescues "
+                    "faded film, and fading compresses the density range a bracket exists to "
+                    "capture. Unmerge the frame if you need the stretch."
+                )
             )
         )
         self.normalize_merged_hint.setVisible(False)
@@ -373,9 +383,10 @@ class ProcessSidebar(BaseSidebar):
                 w.setVisible(not hide_channels)
 
             idx = self._channel_index()
+            # _CH_LABEL is module-level, so the joined label is translated as one runtime string.
             suffix = _CH_LABEL[idx]
-            self.white_point_slider.label.setText("White Point" + suffix)
-            self.black_point_slider.label.setText("Black Point" + suffix)
+            self.white_point_slider.label.setText(tr("White Point" + suffix))
+            self.black_point_slider.label.setText(tr("Black Point" + suffix))
             if idx == 0:
                 self.white_point_slider.setValue(conf.white_point_offset)
                 self.black_point_slider.setValue(conf.black_point_offset)

@@ -14,6 +14,7 @@ from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import wrap_tooltip
 from negpy.desktop.view.widgets.granular_settings_dialog import GranularSettingsDialog
 from negpy.domain.models import WorkspaceConfig
+from negpy.kernel.system.i18n import tr
 from negpy.services.assets.presets import Presets, is_valid_preset_name
 
 _PRESET_EXCLUDED_SECTIONS = frozenset({"Crop", "Rotation"})
@@ -38,12 +39,12 @@ class PresetsSidebar(BaseSidebar):
 
         row = QHBoxLayout()
         self.apply_btn = self._labeled_action(
-            "fa5s.check", " Apply", "Apply the selected preset to the current image (or double-click a preset)"
+            "fa5s.check", tr(" Apply"), tr("Apply the selected preset to the current image (or double-click a preset)")
         )
-        self.save_btn = self._labeled_action("fa5s.save", " Save…", "Pick which of the current settings to store as a new preset")
+        self.save_btn = self._labeled_action("fa5s.save", tr(" Save…"), tr("Pick which of the current settings to store as a new preset"))
 
-        self.edit_btn = self._icon_action("fa5s.pen", "Edit the selected preset — rename it or change which settings it stores")
-        self.delete_btn = self._icon_action("fa5s.trash", "Delete the selected preset")
+        self.edit_btn = self._icon_action("fa5s.pen", tr("Edit the selected preset — rename it or change which settings it stores"))
+        self.delete_btn = self._icon_action("fa5s.trash", tr("Delete the selected preset"))
 
         row.addWidget(self.apply_btn, stretch=1)
         row.addWidget(self.save_btn, stretch=1)
@@ -85,7 +86,7 @@ class PresetsSidebar(BaseSidebar):
             roll_count=len(visible),
             exclude_sections=_PRESET_EXCLUDED_SECTIONS,
         )
-        dlg.setWindowTitle("Apply Preset")
+        dlg.setWindowTitle(tr("Apply Preset"))
         if dlg.exec() != QDialog.DialogCode.Accepted:
             return
         rows = dlg.selected()
@@ -104,7 +105,7 @@ class PresetsSidebar(BaseSidebar):
         dlg = GranularSettingsDialog(
             self,
             self.state.config,
-            "current settings",
+            tr("current settings"),
             ask_name=True,
             exclude_sections=_PRESET_EXCLUDED_SECTIONS,
         )
@@ -118,7 +119,7 @@ class PresetsSidebar(BaseSidebar):
         if cfg is None:
             return
         dlg = GranularSettingsDialog(self, cfg, name, ask_name=True, exclude_sections=_PRESET_EXCLUDED_SECTIONS)
-        dlg.setWindowTitle("Edit Preset")
+        dlg.setWindowTitle(tr("Edit Preset"))
         dlg.set_name(name)
         if dlg.exec() != QDialog.DialogCode.Accepted:
             return
@@ -134,12 +135,12 @@ class PresetsSidebar(BaseSidebar):
         from PyQt6.QtWidgets import QMessageBox
 
         if not is_valid_preset_name(name):
-            QMessageBox.warning(self, "Preset name", 'A preset name cannot contain / \\ : * ? " < > | or start or end with a dot.')
+            QMessageBox.warning(self, tr("Preset name"), tr('A preset name cannot contain / \\ : * ? " < > | or start or end with a dot.'))
             return False
         if name.casefold() == replacing.casefold() or not replacing or not Presets.exists(name):
             return True
         return (
-            QMessageBox.question(self, "Replace preset", f"A preset named '{name}' already exists. Replace it?")
+            QMessageBox.question(self, tr("Replace preset"), tr("A preset named '{name}' already exists. Replace it?").format(name=name))
             == QMessageBox.StandardButton.Yes
         )
 
@@ -151,8 +152,8 @@ class PresetsSidebar(BaseSidebar):
             return
         reply = QMessageBox.question(
             self,
-            "Delete Preset",
-            f"Delete preset '{name}'?",
+            tr("Delete Preset"),
+            tr("Delete preset '{name}'?").format(name=name),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Cancel,
         )

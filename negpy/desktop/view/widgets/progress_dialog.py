@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 
 from negpy.desktop.view.styles.theme import THEME
 from negpy.desktop.view.widgets.floating_panel import float_over_app
+from negpy.kernel.system.i18n import tr
 
 
 class ProgressDialog(QDialog):
@@ -25,7 +26,7 @@ class ProgressDialog(QDialog):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Working…")
+        self.setWindowTitle(tr("Working…"))
         self.setModal(False)
         float_over_app(self)
         self.setFixedWidth(360)
@@ -74,7 +75,7 @@ class ProgressDialog(QDialog):
         footer.addWidget(self._count)
         footer.addStretch(1)
 
-        self._abort = QPushButton("Abort")
+        self._abort = QPushButton(tr("Abort"))
         self._abort.setStyleSheet("QPushButton { padding: 6px 14px; }")
         self._abort.clicked.connect(self._on_abort)
         footer.addWidget(self._abort)
@@ -88,7 +89,7 @@ class ProgressDialog(QDialog):
         self._bar.setRange(0, 0)  # indeterminate until first progress
         self._abort.setVisible(abortable)
         self._abort.setEnabled(True)
-        self._abort.setText("Abort")
+        self._abort.setText(tr("Abort"))
         self.show()
         self.raise_()
 
@@ -105,5 +106,5 @@ class ProgressDialog(QDialog):
 
     def _on_abort(self) -> None:
         self._abort.setEnabled(False)
-        self._abort.setText("Aborting…")
+        self._abort.setText(tr("Aborting…"))
         self.abort_requested.emit()

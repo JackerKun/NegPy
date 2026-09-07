@@ -6,6 +6,7 @@ from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import section_subheader, wrap_tooltip
 from negpy.desktop.view.widgets.sliders import CompactSlider
 from negpy.features.exposure.models import EXPOSURE_CONSTANTS, TUNABLE_TARGETS, apply_targets
+from negpy.kernel.system.i18n import tr
 
 _CH_SUFFIX = ("red", "green", "blue")
 _CH_LABEL = ("", " R", " G", " B")
@@ -21,26 +22,34 @@ class ToneSidebar(BaseSidebar):
     def _init_ui(self) -> None:
         conf = self.state.config.exposure
 
-        self.density_slider = CompactSlider("Print Density", 0.0, 2.0, conf.density)
-        self.grade_slider = CompactSlider("ISO-R Grade", 50.0, 180.0, conf.grade, step=1.0, inverted=True)
-        self.grade_trim_slider = CompactSlider("Grade", -30.0, 30.0, 0.0, step=1.0, inverted=True)
+        self.density_slider = CompactSlider(tr("Print Density"), 0.0, 2.0, conf.density)
+        self.grade_slider = CompactSlider(tr("ISO-R Grade"), 50.0, 180.0, conf.grade, step=1.0, inverted=True)
+        self.grade_trim_slider = CompactSlider(tr("Grade"), -30.0, 30.0, 0.0, step=1.0, inverted=True)
         self.grade_trim_slider.setToolTip(
-            "Crossover correction — this layer's contrast trim in ISO-R points on top of the Grade: "
-            "filtration can only shift a dye layer's curve, this rotates its slope, fixing casts that "
-            "differ between shadows and highlights. Midtone neutrality is preserved."
+            tr(
+                "Crossover correction — this layer's contrast trim in ISO-R points on top of the Grade: "
+                "filtration can only shift a dye layer's curve, this rotates its slope, fixing casts that "
+                "differ between shadows and highlights. Midtone neutrality is preserved."
+            )
         )
         self.grade_trim_slider.setVisible(False)
 
         # Channel selector: Global = the shared curve; R/G/B = per-layer trims.
-        self.ch_global_btn = self._labeled_toggle("fa5s.globe", " Global", True, "Global — edit the shared H&D curve (all layers)")
+        self.ch_global_btn = self._labeled_toggle("fa5s.globe", tr(" Global"), True, tr("Global — edit the shared H&D curve (all layers)"))
         self.ch_r_btn = self._labeled_toggle(
-            "fa5s.circle", " Red", False, "Red layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the cyan-dye emulsion"
+            "fa5s.circle", tr(" Red"), False, tr("Red layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the cyan-dye emulsion")
         )
         self.ch_g_btn = self._labeled_toggle(
-            "fa5s.circle", " Green", False, "Green layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the magenta-dye emulsion"
+            "fa5s.circle",
+            tr(" Green"),
+            False,
+            tr("Green layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the magenta-dye emulsion"),
         )
         self.ch_b_btn = self._labeled_toggle(
-            "fa5s.circle", " Blue", False, "Blue layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the yellow-dye emulsion"
+            "fa5s.circle",
+            tr(" Blue"),
+            False,
+            tr("Blue layer — per-layer Grade/Toe/Shoulder/Width/Snap trims for the yellow-dye emulsion"),
         )
         for btn, color in zip((self.ch_r_btn, self.ch_g_btn, self.ch_b_btn), _CH_COLORS):
             btn.setIcon(qta.icon("fa5s.circle", color=color))
@@ -73,22 +82,28 @@ class ToneSidebar(BaseSidebar):
 
         self.auto_density_btn = self._small_toggle(
             "fa5s.magic",
-            "Auto Density",
+            tr("Auto Density"),
             conf.auto_exposure,
-            "Auto Density: meter each frame's midtone and anchor the print exposure there, so dense "
-            "and flat negatives land at a consistent brightness instead of needing per-frame trimming",
+            tr(
+                "Auto Density: meter each frame's midtone and anchor the print exposure there, so dense "
+                "and flat negatives land at a consistent brightness instead of needing per-frame trimming"
+            ),
         )
         self.auto_grade_btn = self._small_toggle(
             "fa5s.balance-scale",
-            "Auto Grade",
+            tr("Auto Grade"),
             conf.auto_normalize_contrast,
-            "Auto Grade: aim each frame at a contrast target instead of printing the negative's own "
-            "density range, so dense negatives stop printing over-contrasty and flat ones stop printing muddy",
+            tr(
+                "Auto Grade: aim each frame at a contrast target instead of printing the negative's own "
+                "density range, so dense negatives stop printing over-contrasty and flat ones stop printing muddy"
+            ),
         )
         self.targets_btn = self._icon_action(
             "fa5s.sliders-h",
-            "Set Targets — tune the brightness and contrast Auto Density and Auto Grade aim for. "
-            "Applies to every frame and is remembered between sessions.",
+            tr(
+                "Set Targets — tune the brightness and contrast Auto Density and Auto Grade aim for. "
+                "Applies to every frame and is remembered between sessions."
+            ),
         )
         self.targets_btn.clicked.connect(self._open_targets_dialog)
         self.test_strip_btn = self._tool_toggle("mdi.view-grid-outline", "", self._test_strip_tooltip())
@@ -105,21 +120,23 @@ class ToneSidebar(BaseSidebar):
 
         self.paper_black_btn = self._small_toggle(
             "fa5s.circle",
-            "Paper Black",
+            tr("Paper Black"),
             conf.paper_black,
-            "Paper Black — show the paper's real Dmax as a slightly lifted, milky black instead of "
-            "compensating it to pure display black. Off (default) applies black point compensation, "
-            "like an ICC relative-colorimetric soft-proof, so the adapted eye reads paper black as "
-            "black; on preserves the paper's true maximum density.",
+            tr(
+                "Paper Black — show the paper's real Dmax as a slightly lifted, milky black instead of "
+                "compensating it to pure display black. Off (default) applies black point compensation, "
+                "like an ICC relative-colorimetric soft-proof, so the adapted eye reads paper black as "
+                "black; on preserves the paper's true maximum density."
+            ),
         )
         self.paper_dmin_btn = self._small_toggle(
             "fa5s.file",
-            "Paper White",
+            tr("Paper White"),
             conf.paper_dmin,
-            "Paper White: simulate paper base density (Dmin 0.06) — whites print at ~0.93 instead of pure white, like a real print",
+            tr("Paper White: simulate paper base density (Dmin 0.06) — whites print at ~0.93 instead of pure white, like a real print"),
         )
-        self.shadow_density_slider = CompactSlider("Shadows Density", -0.9, 0.9, conf.shadow_density)
-        self.highlight_density_slider = CompactSlider("Highlights Density", -0.5, 0.5, conf.highlight_density)
+        self.shadow_density_slider = CompactSlider(tr("Shadows Density"), -0.9, 0.9, conf.shadow_density)
+        self.highlight_density_slider = CompactSlider(tr("Highlights Density"), -0.5, 0.5, conf.highlight_density)
         zone_density_row = QHBoxLayout()
         zone_density_row.addWidget(self.shadow_density_slider)
         zone_density_row.addWidget(self.highlight_density_slider)
@@ -130,31 +147,35 @@ class ToneSidebar(BaseSidebar):
         grade_row.addWidget(self.grade_trim_slider)
         self.layout.addLayout(grade_row)
 
-        self.shadow_grade_slider = CompactSlider("Shadows Grade", -50.0, 50.0, conf.shadow_grade, step=1.0, inverted=True)
-        self.highlight_grade_slider = CompactSlider("Highlights Grade", -50.0, 50.0, conf.highlight_grade, step=1.0, inverted=True)
+        self.shadow_grade_slider = CompactSlider(tr("Shadows Grade"), -50.0, 50.0, conf.shadow_grade, step=1.0, inverted=True)
+        self.highlight_grade_slider = CompactSlider(tr("Highlights Grade"), -50.0, 50.0, conf.highlight_grade, step=1.0, inverted=True)
         split_grade_row = QHBoxLayout()
         split_grade_row.addWidget(self.shadow_grade_slider)
         split_grade_row.addWidget(self.highlight_grade_slider)
         self.layout.addLayout(split_grade_row)
 
         # Inverted like ISO-R Grade, so dragging right hardens on both controls.
-        self.contrast_mask_slider = CompactSlider("Contrast Mask", -0.5, 0.5, conf.contrast_mask, has_neutral=True, inverted=True)
+        self.contrast_mask_slider = CompactSlider(tr("Contrast Mask"), -0.5, 0.5, conf.contrast_mask, has_neutral=True, inverted=True)
         self.contrast_mask_slider.setToolTip(
-            "Contrast Mask: sandwich the negative with a blurred, low-contrast film mask, as in "
-            "the darkroom. Densities add, so the mask's polarity sets the direction and its gamma "
-            "sets the amount. Positive is a blurred positive and squeezes the negative's range, so "
-            "a harder grade then fits the paper. Negative matches the negative's own polarity and "
-            "stretches the range instead, adding snap to the broad tones while grain and texture "
-            "stay put. It still works on a flat negative where Grade has run out."
+            tr(
+                "Contrast Mask: sandwich the negative with a blurred, low-contrast film mask, as in "
+                "the darkroom. Densities add, so the mask's polarity sets the direction and its gamma "
+                "sets the amount. Positive is a blurred positive and squeezes the negative's range, so "
+                "a harder grade then fits the paper. Negative matches the negative's own polarity and "
+                "stretches the range instead, adding snap to the broad tones while grain and texture "
+                "stay put. It still works on a flat negative where Grade has run out."
+            )
         )
-        self.mask_spacer_slider = CompactSlider("Mask Spacer", 2.0, 6.0, conf.mask_spacer, unit="%")
+        self.mask_spacer_slider = CompactSlider(tr("Mask Spacer"), 2.0, 6.0, conf.mask_spacer, unit="%")
         self.mask_spacer_slider.setToolTip(
-            "Mask Spacer: what holds the mask off the negative, as a per-cent of the frame. It "
-            "sets the scale above which tones are masked, so it reads backwards from a blur "
-            "radius: a thick spacer works on the broad masses only and leaves detail alone, a "
-            "thin one reaches down into the detail and so bites harder. Thin also lifts shadows "
-            "that sit next to something bright, which is the mask line on the sheet. "
-            "Inert with no mask."
+            tr(
+                "Mask Spacer: what holds the mask off the negative, as a per-cent of the frame. It "
+                "sets the scale above which tones are masked, so it reads backwards from a blur "
+                "radius: a thick spacer works on the broad masses only and leaves detail alone, a "
+                "thin one reaches down into the detail and so bites harder. Thin also lifts shadows "
+                "that sit next to something bright, which is the mask line on the sheet. "
+                "Inert with no mask."
+            )
         )
         contrast_mask_row = QHBoxLayout()
         contrast_mask_row.addWidget(self.contrast_mask_slider)
@@ -163,35 +184,41 @@ class ToneSidebar(BaseSidebar):
 
         # Density-domain saturation, composed into the same dye_mix slot as the paper's real dye
         # crosstalk, rather than a post-hoc Lab-space a*/b*
-        self.dye_separation_slider = CompactSlider("Dye Separation", 0.5, 1.5, conf.dye_separation, has_neutral=True)
-        self.dye_separation_trim_slider = CompactSlider("Dye Separation", -0.4, 0.4, 0.0, has_neutral=True)
+        self.dye_separation_slider = CompactSlider(tr("Dye Separation"), 0.5, 1.5, conf.dye_separation, has_neutral=True)
+        self.dye_separation_trim_slider = CompactSlider(tr("Dye Separation"), -0.4, 0.4, 0.0, has_neutral=True)
         self.dye_separation_trim_slider.setToolTip(
-            "This layer's Dye Separation trim on top of the global value — pushes/pulls this "
-            "channel's density separation independently. Neutrals stay flat at any trim value."
+            tr(
+                "This layer's Dye Separation trim on top of the global value — pushes/pulls this "
+                "channel's density separation independently. Neutrals stay flat at any trim value."
+            )
         )
         self.dye_separation_trim_slider.setVisible(False)
         # Redistributes the slider above by each pixel's own chroma. Inert at 1.0 separation, so
         # it is disabled there rather than reading as broken.
-        self.separation_damping_slider = CompactSlider("Separation Damping", 0.0, 1.0, conf.separation_damping)
+        self.separation_damping_slider = CompactSlider(tr("Separation Damping"), 0.0, 1.0, conf.separation_damping)
         dye_sep_row = QHBoxLayout()
         dye_sep_row.addWidget(self.dye_separation_slider)
         dye_sep_row.addWidget(self.dye_separation_trim_slider)
         dye_sep_row.addWidget(self.separation_damping_slider)
         self.layout.addLayout(dye_sep_row)
 
-        paper_header = section_subheader("PAPER RESPONSE")
+        paper_header = section_subheader(tr("PAPER RESPONSE"))
         paper_header.setToolTip(
-            "The paper's characteristic (Hurter–Driffield) curve: how print density responds to "
-            "exposure. Snap bends the midtone gamma, Toe shapes the shadow roll-off into paper "
-            "black, Shoulder the highlight roll-off into paper white — each knee with its own "
-            "Width, per dye layer via the Global/R/G/B selector."
+            tr(
+                "The paper's characteristic (Hurter–Driffield) curve: how print density responds to "
+                "exposure. Snap bends the midtone gamma, Toe shapes the shadow roll-off into paper "
+                "black, Shoulder the highlight roll-off into paper white — each knee with its own "
+                "Width, per dye layer via the Global/R/G/B selector."
+            )
         )
         self.layout.addWidget(paper_header)
 
         self.paper_combo = QComboBox()
         self.paper_combo.setToolTip(
-            "Darkroom paper profile — re-shapes the H&D curve (and color, on RA4) to a classic "
-            "stock as a baseline; Grade / Density / toe / shoulder still trim on top."
+            tr(
+                "Darkroom paper profile — re-shapes the H&D curve (and color, on RA4) to a classic "
+                "stock as a baseline; Grade / Density / toe / shoulder still trim on top."
+            )
         )
         self._populate_paper_combo(self.state.config.process.process_mode)
         idx = self.paper_combo.findData(conf.paper_profile)
@@ -204,32 +231,36 @@ class ToneSidebar(BaseSidebar):
         paper_toggle_row.addWidget(self.paper_dmin_btn, 1)
         self.layout.addLayout(paper_toggle_row)
 
-        self.midtone_gamma_slider = CompactSlider("Snap", -0.5, 0.5, conf.midtone_gamma)
+        self.midtone_gamma_slider = CompactSlider(tr("Snap"), -0.5, 0.5, conf.midtone_gamma)
         snap_row = QHBoxLayout()
         snap_row.addWidget(self.midtone_gamma_slider)
         self.layout.addLayout(snap_row)
 
         toe_row = QHBoxLayout()
-        self.toe_w_slider = CompactSlider("Toe Width", 0.1, 5.0, conf.toe_width)
-        self.toe_w_trim_slider = CompactSlider("Toe Width", -2.0, 2.0, 0.0)
+        self.toe_w_slider = CompactSlider(tr("Toe Width"), 0.1, 5.0, conf.toe_width)
+        self.toe_w_trim_slider = CompactSlider(tr("Toe Width"), -2.0, 2.0, 0.0)
         self.toe_w_trim_slider.setToolTip(
-            "This layer's toe width trim on top of the global Toe Width — per-layer roll-off extent "
-            "(sharpness crossover): how far this layer's shadow knee reaches up the tonal scale."
+            tr(
+                "This layer's toe width trim on top of the global Toe Width — per-layer roll-off extent "
+                "(sharpness crossover): how far this layer's shadow knee reaches up the tonal scale."
+            )
         )
         self.toe_w_trim_slider.setVisible(False)
-        self.toe_slider = CompactSlider("Toe", -1.0, 1.0, conf.toe)
+        self.toe_slider = CompactSlider(tr("Toe"), -1.0, 1.0, conf.toe)
         toe_row.addWidget(self.toe_slider)
         toe_row.addWidget(self.toe_w_slider)
         toe_row.addWidget(self.toe_w_trim_slider)
         self.layout.addLayout(toe_row)
 
         sh_row = QHBoxLayout()
-        self.sh_slider = CompactSlider("Shoulder", -1.0, 1.0, conf.shoulder)
-        self.sh_w_slider = CompactSlider("Shoulder Width", 0.1, 5.0, conf.shoulder_width)
-        self.sh_w_trim_slider = CompactSlider("Shoulder Width", -2.0, 2.0, 0.0)
+        self.sh_slider = CompactSlider(tr("Shoulder"), -1.0, 1.0, conf.shoulder)
+        self.sh_w_slider = CompactSlider(tr("Shoulder Width"), 0.1, 5.0, conf.shoulder_width)
+        self.sh_w_trim_slider = CompactSlider(tr("Shoulder Width"), -2.0, 2.0, 0.0)
         self.sh_w_trim_slider.setToolTip(
-            "This layer's shoulder width trim on top of the global Width — per-layer roll-off extent "
-            "(sharpness crossover): how far this layer's highlight knee reaches down the tonal scale."
+            tr(
+                "This layer's shoulder width trim on top of the global Width — per-layer roll-off extent "
+                "(sharpness crossover): how far this layer's highlight knee reaches down the tonal scale."
+            )
         )
         self.sh_w_trim_slider.setVisible(False)
         sh_row.addWidget(self.sh_slider)
@@ -308,11 +339,13 @@ class ToneSidebar(BaseSidebar):
     @staticmethod
     def _test_strip_tooltip(printing: bool = False) -> str:
         if printing:
-            return "Printing the test strip…"
+            return tr("Printing the test strip…")
         return tooltip_with_shortcut(
-            "Test Strip: print the frame as a 5×5 grid — Print Density increasing left to right, "
-            "ISO-R Grade softening top to bottom. Click the patch you like to keep its settings. "
-            "The 90° rotate controls turn the ladder while it is up.",
+            tr(
+                "Test Strip: print the frame as a 5×5 grid — Print Density increasing left to right, "
+                "ISO-R Grade softening top to bottom. Click the patch you like to keep its settings. "
+                "The 90° rotate controls turn the ladder while it is up."
+            ),
             "toggle_test_strip",
         )
 
@@ -472,11 +505,11 @@ class ToneSidebar(BaseSidebar):
             self.dye_separation_slider.setVisible(global_mode and not is_bw and not transfer)
             self.dye_separation_trim_slider.setVisible(not global_mode and not is_bw and not transfer)
             self.separation_damping_slider.setVisible(global_mode and not is_bw and not transfer)
-            self.toe_slider.label.setText("Toe" + suffix)
-            self.sh_slider.label.setText("Shoulder" + suffix)
-            self.midtone_gamma_slider.label.setText("Snap" + suffix)
-            self.shadow_grade_slider.label.setText("Shadows Grade" + suffix)
-            self.highlight_grade_slider.label.setText("Highlights Grade" + suffix)
+            self.toe_slider.label.setText(tr("Toe") + tr(suffix))
+            self.sh_slider.label.setText(tr("Shoulder") + tr(suffix))
+            self.midtone_gamma_slider.label.setText(tr("Snap") + tr(suffix))
+            self.shadow_grade_slider.label.setText(tr("Shadows Grade") + tr(suffix))
+            self.highlight_grade_slider.label.setText(tr("Highlights Grade") + tr(suffix))
             if global_mode:
                 self.toe_slider.setValue(conf.toe)
                 self.sh_slider.setValue(conf.shoulder)
@@ -485,18 +518,18 @@ class ToneSidebar(BaseSidebar):
                 self.highlight_grade_slider.setValue(conf.highlight_grade)
             else:
                 ch = _CH_SUFFIX[idx - 1]
-                self.grade_trim_slider.label.setText("Grade" + suffix)
+                self.grade_trim_slider.label.setText(tr("Grade") + tr(suffix))
                 self.grade_trim_slider.setValue(getattr(conf, f"grade_trim_{ch}"))
                 self.toe_slider.setValue(getattr(conf, f"toe_trim_{ch}"))
                 self.sh_slider.setValue(getattr(conf, f"shoulder_trim_{ch}"))
                 self.midtone_gamma_slider.setValue(getattr(conf, f"midtone_gamma_trim_{ch}"))
                 self.shadow_grade_slider.setValue(getattr(conf, f"shadow_grade_trim_{ch}"))
                 self.highlight_grade_slider.setValue(getattr(conf, f"highlight_grade_trim_{ch}"))
-                self.toe_w_trim_slider.label.setText("Toe Width" + suffix)
+                self.toe_w_trim_slider.label.setText(tr("Toe Width") + tr(suffix))
                 self.toe_w_trim_slider.setValue(getattr(conf, f"toe_width_trim_{ch}"))
-                self.sh_w_trim_slider.label.setText("Shoulder Width" + suffix)
+                self.sh_w_trim_slider.label.setText(tr("Shoulder Width") + tr(suffix))
                 self.sh_w_trim_slider.setValue(getattr(conf, f"shoulder_width_trim_{ch}"))
-                self.dye_separation_trim_slider.label.setText("Dye Separation" + suffix)
+                self.dye_separation_trim_slider.label.setText(tr("Dye Separation") + tr(suffix))
                 self.dye_separation_trim_slider.setValue(getattr(conf, f"dye_separation_trim_{ch}"))
             for w in self._global_only:
                 w.setEnabled(global_mode)

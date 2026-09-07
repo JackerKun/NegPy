@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from negpy.features.exposure.models import EXPOSURE_CONSTANTS
+from negpy.kernel.system.i18n import tr
 
 _CLIP_WARN = 0.01  # >1% of a channel clipped flags a warning
 _REPAIR_WARN = 0.05  # a route rewriting >5% of the scan is repairing the picture, not the dust
@@ -44,11 +45,11 @@ def _negative_row(norm_density_range: Optional[float]) -> StatRow:
 
     ratio = float(norm_density_range) / default_grade_range()
     if ratio < _DIAG_FLAT:
-        character = "flat (≈N−1)"
+        character = tr("flat (≈N−1)")
     elif ratio > _DIAG_CONTRASTY:
-        character = "contrasty (≈N+1)"
+        character = tr("contrasty (≈N+1)")
     else:
-        character = "normal"
+        character = tr("normal")
     return StatRow("Negative", f"{float(norm_density_range):.2f} · {character}")
 
 

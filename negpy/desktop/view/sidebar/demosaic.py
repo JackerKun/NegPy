@@ -4,6 +4,7 @@ from negpy.desktop.view.sidebar.base import BaseSidebar
 from negpy.desktop.view.styles.templates import field_label, hint_label
 from negpy.features.process.models import DemosaicMode
 from negpy.infrastructure.loaders.helpers import supported_demosaic_modes
+from negpy.kernel.system.i18n import tr
 
 _TIP = (
     "<table width='280'><tr><td>"
@@ -30,20 +31,22 @@ class DemosaicSidebar(BaseSidebar):
 
         self.preview_combo = QComboBox()
         self.preview_combo.addItems(modes)
-        self.preview_combo.setToolTip(_TIP)
+        self.preview_combo.setToolTip(tr(_TIP))
         self.export_combo = QComboBox()
         self.export_combo.addItems(modes)
-        self.export_combo.setToolTip(_TIP)
+        self.export_combo.setToolTip(tr(_TIP))
 
-        for label, combo in (("Preview", self.preview_combo), ("Export", self.export_combo)):
+        for label, combo in ((tr("Preview"), self.preview_combo), (tr("Export"), self.export_combo)):
             row = QHBoxLayout()
             row.addWidget(field_label(label))
             row.addWidget(combo, 1)
             self.layout.addLayout(row)
 
         self.hint = hint_label(
-            "Bayer and X-Trans RAW only — a scanner TIFF or a linear DNG arrives already de-mosaiced. "
-            "Auto and Linear are the fastest for the preview."
+            tr(
+                "Bayer and X-Trans RAW only — a scanner TIFF or a linear DNG arrives already de-mosaiced. "
+                "Auto and Linear are the fastest for the preview."
+            )
         )
         self.layout.addWidget(self.hint)
 

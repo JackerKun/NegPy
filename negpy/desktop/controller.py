@@ -11,7 +11,7 @@ from PyQt6.QtCore import Q_ARG, QMetaObject, QObject, Qt, QThread, QTimer, pyqtS
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QCheckBox, QMessageBox
 
-from negpy.kernel.system.text import count_of, plural
+from negpy.kernel.system.text import count_of
 from negpy.kernel.image.logic import working_oetf_encode
 from negpy.desktop.converters import ImageConverter
 from negpy.desktop.render_memo import RenderMemo
@@ -136,6 +136,7 @@ from negpy.infrastructure.gpu.device import GPUDevice
 from negpy.infrastructure.gpu.resources import GPUTexture
 from negpy.infrastructure.storage.local_asset_store import LocalAssetStore
 from negpy.kernel.system.config import APP_CONFIG
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.logging import get_logger
 from negpy.services.rendering.preview_manager import PreviewManager
 from negpy.services.rendering.source_identity import source_token
@@ -763,10 +764,10 @@ class AppController(QObject):
     def generate_missing_thumbnails(self) -> None:
         missing = [f for f in self.state.uploaded_files if asset_thumbnail_key(f) not in self.state.thumbnails]
         if missing:
-            if self._begin_batch("thumbnails", "Generating thumbnails", abortable=False) is None:
+            if self._begin_batch("thumbnails", tr("Generating thumbnails"), abortable=False) is None:
                 return
             self._thumb_requested = [asset_thumbnail_key(f) for f in missing]
-            self.set_status("GENERATING THUMBNAILS...")
+            self.set_status(tr("GENERATING THUMBNAILS..."))
             # Copies, carrying each frame's stored film process. The source decode cannot
             # tell a slide from a negative reliably, and inverting a positive is what put
             # negatives in the filmstrip. They are copies because these dicts cross to a
@@ -783,7 +784,7 @@ class AppController(QObject):
         self.generate_missing_thumbnails()
 
     def _on_thumbnail_progress(self, current: int, total: int, name: str) -> None:
-        self.set_status(f"THUMBNAIL {current}/{total}: {name}")
+        self.set_status(tr("THUMBNAIL {current}/{total}: {name}").format(current=current, total=total, name=name))
         self.status_progress_requested.emit(current, total)
         self.batch_progress.emit(current, total, name)
 
@@ -846,7 +847,7 @@ class AppController(QObject):
     def _begin_batch(self, owner: str, title: str, abortable: bool) -> Optional[int]:
         """Claim the shared batch lane and return its generation token."""
         if self._active_batch is not None:
-            self.set_status(f"{self._active_batch_title} is already running", 3000)
+            self.set_status(tr("{title} is already running").format(title=self._active_batch_title), 3000)
             return None
         self._batch_serial += 1
         self._active_batch = owner
@@ -859,7 +860,9 @@ class AppController(QObject):
     def _batch_busy(self, requested: str) -> bool:
         if self._active_batch is None:
             return False
-        self.set_status(f"Cannot start {requested} while {self._active_batch_title} is running", 3000)
+        self.set_status(
+            tr("Cannot start {requested} while {title} is running").format(requested=requested, title=self._active_batch_title), 3000
+        )
         return True
 
     def _end_batch(self, owner: str, token: Optional[int] = None) -> bool:
@@ -881,7 +884,7 @@ class AppController(QObject):
         self.batch_progress.emit(current, total, name)
 
     def _on_batch_cancelled(self, owner: str) -> None:
-        self.set_status("Aborted", 3000)
+        self.set_status(tr("Aborted"), 3000)
         self._end_batch(owner)
 
     def _on_export_batch_cancelled(self) -> None:
@@ -979,7 +982,7 @@ class AppController(QObject):
 
         if self._active_batch is not None:
             self._pending_asset_discoveries.append(request)
-            self.set_status(f"Queued asset discovery until {self._active_batch_title} finishes", 3000)
+            self.set_status(tr("Queued asset discovery until {title} finishes").format(title=self._active_batch_title), 3000)
             return
 
         self._start_asset_discovery(request)
@@ -993,7 +996,7 @@ class AppController(QObject):
         # the view reads this to decide whether to suppress the popup for it.
         previous_hot_folder_sequence = self._hot_folder_sequence_active
         self._hot_folder_sequence_active = request.hot_folder
-        if self._begin_batch("discovery", "Hashing files", abortable=False) is None:
+        if self._begin_batch("discovery", tr("Hashing files"), abortable=False) is None:
             self._hot_folder_sequence_active = previous_hot_folder_sequence
             self._pending_asset_discoveries.insert(0, request)
             return
@@ -1002,7 +1005,7 @@ class AppController(QObject):
         self._replace_after_discovery = request.replace_existing
         self._reselect_after_discovery = request.reselect_path
         self._active_discovery_keys = frozenset(_capture_import_key(path) for path in request.paths)
-        self.set_status("SCANNING FOR ASSETS...")
+        self.set_status(tr("SCANNING FOR ASSETS..."))
         stitches, merges = restore_maps(self.session.repo)
         task = AssetDiscoveryTask(
             paths=list(request.paths),
@@ -1036,7 +1039,7 @@ class AppController(QObject):
         every edit lives in the database under its own content hash, not in the file list."""
         present = [f for f in folders if os.path.isdir(f)]
         if not present:
-            self.set_status("Folder is no longer on disk", 3000)
+            self.set_status(tr("Folder is no longer on disk"), 3000)
             return
         self.request_asset_discovery(
             present,
@@ -1057,13 +1060,13 @@ class AppController(QObject):
         """
         query = (query or "").strip()
         if not query:
-            self.set_status("Type a search first, e.g. film:portra", 3000)
+            self.set_status(tr("Type a search first, e.g. film:portra"), 3000)
             return
         roots = self.library_roots()
         if not roots:
-            self.set_status("Add a library folder first", 4000)
+            self.set_status(tr("Add a library folder first"), 4000)
             return
-        self.set_status("SEARCHING LIBRARY...")
+        self.set_status(tr("SEARCHING LIBRARY..."))
         self.library_search_requested.emit(
             LibrarySearchTask(
                 roots=roots,
@@ -1080,7 +1083,7 @@ class AppController(QObject):
     def _on_library_search_finished(self, paths: List[str]) -> None:
         self.library_search_finished.emit(len(paths))
         if not paths:
-            self.set_status("No frames in the library match that search", 4000)
+            self.set_status(tr("No frames in the library match that search"), 4000)
             return
         self.set_status(f"{len(paths)} frame{'s' if len(paths) != 1 else ''} found", 3000)
         self.request_asset_discovery(paths, auto_open=True, replace_existing=True)
@@ -1277,7 +1280,7 @@ class AppController(QObject):
         title, body = rgb_nothing_matched_message(summary)
         box = QMessageBox(QMessageBox.Icon.Information, title, body, QMessageBox.StandardButton.NoButton)
         if summary["narrowband"]:
-            remember = QCheckBox("Do not show this again")
+            remember = QCheckBox(tr("Do not show this again"))
             box.setCheckBox(remember)
             close_btn = box.addButton(QMessageBox.StandardButton.Ok)
             box.setDefaultButton(close_btn)
@@ -1286,8 +1289,8 @@ class AppController(QObject):
                 self.session.repo.save_global_setting("rgbscan_hide_empty_warning", True)
             return
 
-        turn_off = box.addButton("Turn Off Trichrome Scan", QMessageBox.ButtonRole.AcceptRole)
-        keep = box.addButton("Keep It On", QMessageBox.ButtonRole.RejectRole)
+        turn_off = box.addButton(tr("Turn Off Trichrome Scan"), QMessageBox.ButtonRole.AcceptRole)
+        keep = box.addButton(tr("Keep It On"), QMessageBox.ButtonRole.RejectRole)
         box.setDefaultButton(turn_off)
         box.exec()
         if box.clickedButton() is turn_off:
@@ -1370,7 +1373,7 @@ class AppController(QObject):
                 target = next((i for i in ordered if i in new_indices), first_new_idx)
                 self.session.select_file(target)
         else:
-            self.set_status("NO SUPPORTED ASSETS FOUND", 3000)
+            self.set_status(tr("NO SUPPORTED ASSETS FOUND"), 3000)
             self.status_progress_requested.emit(0, 0)
             self._hot_folder_sequence_active = False
 
@@ -2506,7 +2509,7 @@ class AppController(QObject):
         if self._batch_busy("Auto Crop All"):
             return
         if self.state.config.geometry.autocrop_mode != AutocropMode.IMAGE:
-            self.set_status("Auto Crop All currently supports Image only mode", 4000)
+            self.set_status(tr("Auto Crop All currently supports Image only mode"), 4000)
             return
         visible_files = [self.state.uploaded_files[i] for i in self.session.asset_model.visible_actual_indices_ordered()]
         if not visible_files:
@@ -2528,17 +2531,23 @@ class AppController(QObject):
             )
 
         if not frames:
-            self.set_status(f"Auto Crop All preserved {count_of(preflight_skipped, 'frame')}; nothing to analyze", 4000)
+            if preflight_skipped == 1:
+                self.set_status(tr("Auto Crop All preserved {n} frame; nothing to analyze").format(n=preflight_skipped), 4000)
+            else:
+                self.set_status(tr("Auto Crop All preserved {n} frames; nothing to analyze").format(n=preflight_skipped), 4000)
             return
 
-        token = self._begin_batch("autocrop", "Auto cropping roll", abortable=True)
+        token = self._begin_batch("autocrop", tr("Auto cropping roll"), abortable=True)
         if token is None:
             return
         self._autocrop_batch_token = token
         self._autocrop_dispatched = len(frames)
         self._autocrop_preflight_skipped = preflight_skipped
         self._autocrop_cancel_requested = False
-        self.set_status(f"Auto cropping {count_of(len(frames), 'frame')}...")
+        if len(frames) == 1:
+            self.set_status(tr("Auto cropping {n} frame...").format(n=len(frames)))
+        else:
+            self.set_status(tr("Auto cropping {n} frames...").format(n=len(frames)))
         self.batch_autocrop_requested.emit(
             BatchAutoCropTask(
                 frames=frames,
@@ -2627,7 +2636,7 @@ class AppController(QObject):
         self._autocrop_batch_token = None
         self._autocrop_cancel_requested = False
         self.status_progress_requested.emit(0, 0)
-        self.set_status("Auto Crop All aborted; no crops were saved", 4000)
+        self.set_status(tr("Auto Crop All aborted; no crops were saved"), 4000)
 
     def _on_batch_autocrop_error(self, message: str) -> None:
         token = self._autocrop_batch_token
@@ -3026,8 +3035,8 @@ class AppController(QObject):
                 cropped += 1
 
         if cropped == 0:
-            crop_status = f"Crop status: 0 of {total} files are cropped."
-            crop_warning = (
+            crop_status = tr("Crop status: 0 of {total} files are cropped.").format(total=total)
+            crop_warning = tr(
                 "Strongly recommended: crop all images in this session before running "
                 "Batch Analysis. Without a crop, the Analysis Buffer's small centered "
                 "margin isn't enough to exclude sprocket holes and empty space outside "
@@ -3035,52 +3044,56 @@ class AppController(QObject):
                 "color average, producing a less accurate result for every file."
             )
         elif cropped < total:
-            crop_status = f"Crop status: {cropped} of {total} files are cropped."
-            crop_warning = (
-                f"Strongly recommended: crop the remaining {count_of(total - cropped, 'file')} "
+            crop_status = tr("Crop status: {cropped} of {total} files are cropped.").format(cropped=cropped, total=total)
+            remaining = tr("{n} file").format(n=total - cropped) if total - cropped == 1 else tr("{n} files").format(n=total - cropped)
+            crop_warning = tr(
+                "Strongly recommended: crop the remaining {files} "
                 "before running Batch Analysis. Uncropped files rely on the Analysis "
                 "Buffer's small centered margin, which isn't enough to exclude sprocket "
                 "holes and empty space outside the actual frame — that unwanted region "
                 "gets included in the luma and color average, producing a less accurate "
                 "result for every file."
-            )
+            ).format(files=remaining)
         else:
-            crop_status = f"Crop status: all {total} files are cropped."
-            crop_warning = "Analysis will run on each file's cropped negative area."
+            crop_status = tr("Crop status: all {total} files are cropped.").format(total=total)
+            crop_warning = tr("Analysis will run on each file's cropped negative area.")
 
         sheet_note = ""
         if self.session.asset_model.sheet_filter != "all":
-            sheet_note = (
-                f"Note: the Sheet filter is on — only the {count_of(total, 'visible frame')} {plural(total, 'is', 'are')} analyzed.\n\n"
-            )
+            if total == 1:
+                sheet_note = tr("Note: the Sheet filter is on — only the {n} visible frame is analyzed.\n\n").format(n=total)
+            else:
+                sheet_note = tr("Note: the Sheet filter is on — only the {n} visible frames are analyzed.\n\n").format(n=total)
 
         reply = QMessageBox.question(
             None,
-            "Batch Analysis",
+            tr("Batch Analysis"),
             f"{sheet_note}"
             f"{crop_status}\n"
             f"{crop_warning}\n\n"
-            "Batch Analysis measures the exposure bounds of every file and applies "
-            "their average to the whole roll, so all your frames share a consistent "
-            "baseline.\n\n"
-            "Two settings from the image you have open right now are applied to every "
-            "file before averaging:\n"
-            "  • Analysis Buffer — shrinks the analyzed region inward, excluding a "
-            "margin around the edges (film borders, light leaks, the scanner mask).\n"
-            "  • Luma Range Clip — how aggressively the highlight/shadow tails are "
-            "clipped when setting each file's bounds.\n"
-            "Set both on the current frame before running.\n\n"
-            "Continue?",
+            + tr(
+                "Batch Analysis measures the exposure bounds of every file and applies "
+                "their average to the whole roll, so all your frames share a consistent "
+                "baseline.\n\n"
+                "Two settings from the image you have open right now are applied to every "
+                "file before averaging:\n"
+                "  • Analysis Buffer — shrinks the analyzed region inward, excluding a "
+                "margin around the edges (film borders, light leaks, the scanner mask).\n"
+                "  • Luma Range Clip — how aggressively the highlight/shadow tails are "
+                "clipped when setting each file's bounds.\n"
+                "Set both on the current frame before running.\n\n"
+                "Continue?"
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Yes,
         )
         if reply != QMessageBox.StandardButton.Yes:
             return
 
-        token = self._begin_batch("normalization", "Analyzing roll", abortable=True)
+        token = self._begin_batch("normalization", tr("Analyzing roll"), abortable=True)
         if token is None:
             return
-        self.set_status("Starting Batch Normalization...")
+        self.set_status(tr("Starting Batch Normalization..."))
         task = NormalizationTask(
             frames=[NormalizationInput(file_info=a, config=self._config_for_batch_asset(a)) for a in visible_files],
             workspace_color_space=self.state.workspace_color_space,
@@ -3133,7 +3146,7 @@ class AppController(QObject):
         )
         self.session.update_config(replace(self.state.config, process=new_process), persist=True)
 
-        self.set_status("batch analysis complete", timeout=3000)
+        self.set_status(tr("batch analysis complete"), timeout=3000)
         self.status_progress_requested.emit(0, 0)
         self.request_render()
 
@@ -3230,7 +3243,7 @@ class AppController(QObject):
 
         profile_id = FlatFieldProfiles.create(name, path)
         if profile_id is None:
-            self.set_status("Flat-field: could not read that reference image", 3000)
+            self.set_status(tr("Flat-field: could not read that reference image"), 3000)
             return
         self.set_active_flatfield_profile(profile_id)
         self.set_status(f"Flat-field profile '{name}' saved", 2000)
@@ -3330,12 +3343,12 @@ class AppController(QObject):
         by_path = {f["path"]: f for f in files}  # half-frame assets share a path
         ordered = sorted(by_path.values(), key=lambda f: os.path.basename(f["path"]).lower())
         if len(ordered) < 2:
-            self.set_status("Select two or more frames to stitch", 4000)
+            self.set_status(tr("Select two or more frames to stitch"), 4000)
             return
         if any(f.get("stitch_paths") for f in ordered):
-            self.set_status("Stitching an already-stitched frame is not supported", 4000)
+            self.set_status(tr("Stitching an already-stitched frame is not supported"), 4000)
             return
-        if self._begin_batch("stitch", "Stitching frames", abortable=True) is None:
+        if self._begin_batch("stitch", tr("Stitching frames"), abortable=True) is None:
             return
         self.stitch_requested.emit(
             StitchTask(
@@ -3369,7 +3382,10 @@ class AppController(QObject):
         wanted = set(part_paths)
         indices = [i for i, f in enumerate(self.state.uploaded_files) if f["path"] in wanted]
         self.session.apply_composite(indices, composite)
-        self.set_status(f"Stitched {count_of(len(files), 'frame')}", 4000)
+        if len(files) == 1:
+            self.set_status(tr("Stitched {n} frame").format(n=len(files)), 4000)
+        else:
+            self.set_status(tr("Stitched {n} frames").format(n=len(files)), 4000)
         # The composite bypasses asset discovery, so nothing else queues its thumbnail.
         self.generate_missing_thumbnails()
 
@@ -3432,26 +3448,26 @@ class AppController(QObject):
         by_path = {f["path"]: f for f in files}  # half-frame assets share a path
         ordered = sorted(by_path.values(), key=lambda f: os.path.basename(f["path"]).lower())
         if len(ordered) < 2:
-            self.set_status("Select two or more exposures of the same frame to merge", 4000)
+            self.set_status(tr("Select two or more exposures of the same frame to merge"), 4000)
             return
         if any(f.get("hdr_paths") for f in ordered):
-            self.set_status("Merging an already-merged frame is not supported", 4000)
+            self.set_status(tr("Merging an already-merged frame is not supported"), 4000)
             return
         # Both are multi-file source assembly and an asset carries one primary path. The
         # composition order is definable but not wired, so refuse instead of guessing.
         if any(f.get("stitch_paths") for f in ordered):
-            self.set_status("HDR merge of a stitched frame is not supported", 4000)
+            self.set_status(tr("HDR merge of a stitched frame is not supported"), 4000)
             return
         if any(f.get("green_path") for f in ordered):
-            self.set_status("HDR merge of a Trichrome triplet is not supported", 4000)
+            self.set_status(tr("HDR merge of a Trichrome triplet is not supported"), 4000)
             return
         # Halves share a path, so by_path already dropped one of each pair and merging them
         # would produce a whole-frame composite. Every other assembly leaves half-frame
         # assets whole for the same reason (see _expand_half_frames).
         if any(f.get("half") for f in ordered):
-            self.set_status("HDR merge of a half-frame asset is not supported", 4000)
+            self.set_status(tr("HDR merge of a half-frame asset is not supported"), 4000)
             return
-        if self._begin_batch("hdr", "Merging exposures", abortable=True) is None:
+        if self._begin_batch("hdr", tr("Merging exposures"), abortable=True) is None:
             return
         self.hdr_requested.emit(
             HdrTask(
@@ -3613,7 +3629,7 @@ class AppController(QObject):
         self.session.asset_model.refresh()
         if file_hash == self.state.current_file_hash and asset.get("path"):
             self.load_file(asset["path"])
-        self.set_status("Diptych unsplit — the halves' edits are deleted", 4000)
+        self.set_status(tr("Diptych unsplit — the halves' edits are deleted"), 4000)
 
     def _select_file_by_path(self, path: str) -> bool:
         """Find a file by path in uploaded_files and select it."""
@@ -4422,7 +4438,7 @@ class AppController(QObject):
             if not file_path:
                 return
             if not is_linear_output_supported(file_path):
-                self.set_status("Linear Output is not supported for this file type", 4000)
+                self.set_status(tr("Linear Output is not supported for this file type"), 4000)
                 return
             # Reuse the asset dict from uploaded_files so the RGB-scan triplet and stitch
             # fields reach _batch_params_for. A bare {path, name, hash} dict makes
@@ -4438,17 +4454,17 @@ class AppController(QObject):
 
         supported = [f for f in files if is_linear_output_supported(f["path"])]
         if not supported:
-            self.set_status("No files support Linear Output", 4000)
+            self.set_status(tr("No files support Linear Output"), 4000)
             return
 
-        if len(supported) > 1 and not self._confirm_bulk_export(f"Linear-export {count_of(len(supported), 'frame')}?"):
+        if len(supported) > 1 and not self._confirm_bulk_export(tr("Linear-export {n} frames?").format(n=len(supported))):
             return
 
         tasks = self._linear_output_tasks(supported, export_path)
 
         self._export_start_time = time.time()
         self._export_failures = 0
-        if self._begin_batch("export", "Exporting Linear Output", abortable=True) is None:
+        if self._begin_batch("export", tr("Exporting Linear Output"), abortable=True) is None:
             return
         QMetaObject.invokeMethod(
             self.export_worker,
@@ -4609,7 +4625,7 @@ class AppController(QObject):
                 if not self.state.uploaded_files[i].get("excluded")
             ]
 
-        if len(files) > 1 and not self._confirm_bulk_export(f"Export {count_of(len(files), 'frame')}?"):
+        if len(files) > 1 and not self._confirm_bulk_export(tr("Export {n} frames?").format(n=len(files))):
             return
 
         if self.state.config.export.export_sidecars_enabled:
@@ -4730,7 +4746,7 @@ class AppController(QObject):
 
         presets = self._enabled_presets()
         if not presets:
-            QMessageBox.information(None, "No presets enabled", "Enable at least one export preset in the Export panel.")
+            QMessageBox.information(None, tr("No presets enabled"), tr("Enable at least one export preset in the Export panel."))
             return
 
         if not self._validate_preset_paths(presets):
@@ -4741,7 +4757,9 @@ class AppController(QObject):
             n_presets = len(presets)
             n_files = n_frames * n_presets
             if not self._confirm_bulk_export(
-                f"Export {count_of(n_frames, 'frame')} through {count_of(n_presets, 'preset')} ({count_of(n_files, 'file')})?"
+                tr("Export {frames} through {presets} ({files})?").format(
+                    frames=count_of(n_frames, "frame"), presets=count_of(n_presets, "preset"), files=count_of(n_files, "file")
+                )
             ):
                 return
 
@@ -4815,7 +4833,7 @@ class AppController(QObject):
             return
 
         if len(visible_files) > 1 and not self._confirm_bulk_export(
-            f"Render a contact sheet from {count_of(len(visible_files), 'frame')}?"
+            tr("Render a contact sheet from {n} frames?").format(n=len(visible_files))
         ):
             return
 
@@ -4835,7 +4853,7 @@ class AppController(QObject):
         cs = self.state.config.export
         self._export_start_time = time.time()
         self._export_failures = 0
-        if self._begin_batch("contact_sheet", "Contact sheet", abortable=True) is None:
+        if self._begin_batch("contact_sheet", tr("Contact sheet"), abortable=True) is None:
             return
         QMetaObject.invokeMethod(
             self.export_worker,
@@ -4882,8 +4900,9 @@ class AppController(QObject):
         if not visible_files:
             return
         written, failed = self._write_edit_sidecars(visible_files)
-        suffix = f" — {failed} failed" if failed else ""
-        self.set_status(f"Wrote {count_of(written, 'edit sidecar')}{suffix}", 6000 if failed else 4000)
+        suffix = tr(" — {count} failed").format(count=failed) if failed else ""
+        count = tr("{n} edit sidecar").format(n=written) if written == 1 else tr("{n} edit sidecars").format(n=written)
+        self.set_status(tr("Wrote {count}{suffix}").format(count=count, suffix=suffix), 6000 if failed else 4000)
 
     def _run_export_tasks(self, tasks: List[ExportTask]) -> None:
         # Reject unencodable format/color-space pairings before anything else.
@@ -4905,7 +4924,7 @@ class AppController(QObject):
 
         self._export_start_time = time.time()
         self._export_failures = 0
-        if self._begin_batch("export", "Exporting", abortable=True) is None:
+        if self._begin_batch("export", tr("Exporting"), abortable=True) is None:
             return
         QMetaObject.invokeMethod(
             self.export_worker,
@@ -4956,24 +4975,24 @@ class AppController(QObject):
         n = len(conflicts)
         names = "\n".join("  • " + os.path.basename(p) for p in conflicts[:8])
         if n > 8:
-            names += f"\n  … and {n - 8} more"
+            names += "\n" + tr("  … and {n} more").format(n=n - 8)
 
         box = QMessageBox()
         box.setIcon(QMessageBox.Icon.Warning)
         if n == 1:
-            box.setWindowTitle("File already exists")
-            box.setText(f"“{os.path.basename(conflicts[0])}” already exists in the export folder.")
+            box.setWindowTitle(tr("File already exists"))
+            box.setText(tr("“{name}” already exists in the export folder.").format(name=os.path.basename(conflicts[0])))
         else:
-            box.setWindowTitle("Files already exist")
-            box.setText(f"{count_of(n, 'file')} already {plural(n, 'exists', 'exist')} in the export destination.")
-        box.setInformativeText(f"{names}\n\nOverwrite, save with a new name, or cancel?")
+            box.setWindowTitle(tr("Files already exist"))
+            box.setText(tr("{n} files already exist in the export destination.").format(n=n))
+        box.setInformativeText(tr("{names}\n\nOverwrite, save with a new name, or cancel?").format(names=names))
 
-        remember_check = QCheckBox("Always overwrite without asking")
-        remember_check.setToolTip("Turns on the Export panel's “Overwrite existing files” option; stays on until you turn it off.")
+        remember_check = QCheckBox(tr("Always overwrite without asking"))
+        remember_check.setToolTip(tr("Turns on the Export panel's “Overwrite existing files” option; stays on until you turn it off."))
         box.setCheckBox(remember_check)
 
-        overwrite_label = "Overwrite" if n == 1 else "Overwrite All"
-        rename_label = "Rename" if n == 1 else "Rename All"
+        overwrite_label = tr("Overwrite") if n == 1 else tr("Overwrite All")
+        rename_label = tr("Rename") if n == 1 else tr("Rename All")
         overwrite_btn = box.addButton(overwrite_label, QMessageBox.ButtonRole.DestructiveRole)
         rename_btn = box.addButton(rename_label, QMessageBox.ButtonRole.AcceptRole)
         cancel_btn = box.addButton(QMessageBox.StandardButton.Cancel)
@@ -5071,7 +5090,7 @@ class AppController(QObject):
 
         if metrics.get("gpu_fallback") and not self._gpu_fallback_notified:
             self._gpu_fallback_notified = True
-            self.set_status("GPU acceleration failed — using CPU", 5000)
+            self.set_status(tr("GPU acceleration failed — using CPU"), 5000)
 
         # A render already in flight when the peek went on would otherwise repaint over it.
         if self.state.negative_peek:

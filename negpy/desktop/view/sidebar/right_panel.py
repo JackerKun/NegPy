@@ -25,6 +25,7 @@ from negpy.desktop.view.widgets.charts import PhotometricCurveWidget, StepWedgeW
 from negpy.desktop.view.widgets.collapsible import CollapsibleSection
 from negpy.desktop.view.widgets.stats import DensitometerRow, NegativeStatsWidget, ZonePlacementRows
 from negpy.desktop.view.widgets.overflow_bar import OverflowBar
+from negpy.kernel.system.i18n import tr
 
 
 class RightPanel(QWidget):
@@ -76,7 +77,7 @@ class RightPanel(QWidget):
         persisted = repo.get_global_setting("section_expanded_analysis")
         analysis_expanded = bool(persisted) if persisted is not None else THEME.sidebar_expanded_defaults.get("analysis", True)
         self.analysis_section = CollapsibleSection(
-            "Analysis",
+            tr("Analysis"),
             expanded=analysis_expanded,
             icon=qta.icon("fa5s.chart-bar", color="#aaa"),
             info=True,
@@ -116,11 +117,11 @@ class RightPanel(QWidget):
             (page["key"], page["icon_name"], page["tooltip"], page["widget"], page["sections"]) for page in self.controls_panel.pages
         ]
         tab_specs += [
-            ("favourites", "fa5s.star", "Favourites", self.favourites_sidebar, []),
-            ("history", "fa5s.history", "History", self.history_panel, []),
-            ("export", "fa5s.file-export", "Export", self.export_sidebar, []),
-            ("metadata", "fa5s.tags", "Metadata", self.metadata_sidebar, []),
-            ("scan", "fa5s.camera-retro", "Scan", self.scan_page, []),
+            ("favourites", "fa5s.star", tr("Favourites"), self.favourites_sidebar, []),
+            ("history", "fa5s.history", tr("History"), self.history_panel, []),
+            ("export", "fa5s.file-export", tr("Export"), self.export_sidebar, []),
+            ("metadata", "fa5s.tags", tr("Metadata"), self.metadata_sidebar, []),
+            ("scan", "fa5s.camera-retro", tr("Scan"), self.scan_page, []),
         ]
 
         # Icon-only tab switcher; spills into a » menu when the panel is narrowed
@@ -205,7 +206,7 @@ class RightPanel(QWidget):
     def show_analysis_help(self) -> None:
         from negpy.desktop.view.widgets.section_help_dialog import SectionHelpDialog
 
-        SectionHelpDialog("analysis", "Analysis", self).exec()
+        SectionHelpDialog("analysis", tr("Analysis"), self).exec()
 
     def _resize_splitter_for_analysis(self, expanded: bool) -> None:
         """Pin the collapsed Analysis header at the top: shrink pane 0 to the header and
@@ -238,8 +239,8 @@ class RightPanel(QWidget):
                 section.info_requested.connect(lambda k=key, tt=title, s=section: SectionHelpDialog(k, tt, s).exec())
             return section
 
-        self.scan_sane_section = make("Film Scanner", "scan_sane", "fa5s.camera-retro", self.scan_sidebar, False)
-        self.scan_rgb_section = make("Camera Scanning", "scan_rgb", "fa5s.camera", self.scanlight_sidebar, True)
+        self.scan_sane_section = make(tr("Film Scanner"), "scan_sane", "fa5s.camera-retro", self.scan_sidebar, False)
+        self.scan_rgb_section = make(tr("Camera Scanning"), "scan_rgb", "fa5s.camera", self.scanlight_sidebar, True)
 
         page = QWidget()
         page_layout = QVBoxLayout(page)

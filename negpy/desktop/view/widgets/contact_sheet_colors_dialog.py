@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWid
 
 from negpy.desktop.view.styles.fonts import mono_font_family
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 
 def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
@@ -358,7 +359,7 @@ class ContactSheetColorsDialog(QDialog):
         self._editing_background = True
         self._syncing = False
 
-        self.setWindowTitle("Contact Sheet Colors")
+        self.setWindowTitle(tr("Contact Sheet Colors"))
         self.setFixedWidth(328)
 
         root = QVBoxLayout(self)
@@ -370,8 +371,8 @@ class ContactSheetColorsDialog(QDialog):
 
         targets = QVBoxLayout()
         targets.setSpacing(6)
-        self._bg_row = _TargetRow("Background", self)
-        self._label_row = _TargetRow("Labels", self)
+        self._bg_row = _TargetRow(tr("Background"), self)
+        self._label_row = _TargetRow(tr("Labels"), self)
         self._bg_row.clicked.connect(lambda: self._select_target(True))
         self._label_row.clicked.connect(lambda: self._select_target(False))
         targets.addWidget(self._bg_row)
@@ -387,9 +388,9 @@ class ContactSheetColorsDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         btn_row.addStretch()
-        cancel = QPushButton("Cancel")
+        cancel = QPushButton(tr("Cancel"))
         cancel.clicked.connect(self.reject)
-        ok = QPushButton("OK")
+        ok = QPushButton(tr("OK"))
         ok.setProperty("primary", True)
         ok.setDefault(True)
         ok.clicked.connect(self.accept)

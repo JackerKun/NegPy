@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (
 )
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 from negpy.kernel.system.logging import get_logger
 from negpy.kernel.system.updater import (
     UpdateError,
@@ -117,7 +118,7 @@ class DownloadWorker(QThread):
             self.failed.emit(str(exc))
         except Exception as exc:
             logger.exception("Update download failed")
-            self.failed.emit(f"Download failed: {exc}")
+            self.failed.emit(tr("Download failed: {error}").format(error=exc))
         else:
             self.ready.emit(path)
 
@@ -134,7 +135,7 @@ class UpdateDialog(QDialog):
         self.info = info
         self._worker: Optional[DownloadWorker] = None
 
-        self.setWindowTitle(f"NegPy {info.version} is available")
+        self.setWindowTitle(tr("NegPy {version} is available").format(version=info.version))
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowCloseButtonHint)
         self.setModal(True)
         self.resize(640, 560)
@@ -147,11 +148,12 @@ class UpdateDialog(QDialog):
         heading.setStyleSheet(f"color: {THEME.text_primary}; font-size: {THEME.font_size_title}px; font-weight: bold;")
         root.addWidget(heading)
 
-        subtitle = f"You are on {get_app_version()}."
         if info.can_self_install:
-            subtitle += f" NegPy can install this for you ({_mb(info.size)} download)."
+            subtitle = tr("You are on {version}. NegPy can install this for you ({size} download).").format(
+                version=get_app_version(), size=_mb(info.size)
+            )
         else:
-            subtitle += " Download it from the releases page to update."
+            subtitle = tr("You are on {version}. Download it from the releases page to update.").format(version=get_app_version())
         self.subtitle = QLabel(subtitle)
         self.subtitle.setWordWrap(True)
         self.subtitle.setStyleSheet(f"color: {THEME.text_secondary}; font-size: {THEME.font_size_base}px;")
@@ -169,7 +171,7 @@ class UpdateDialog(QDialog):
         self.notes.setStyleSheet(
             f"QTextBrowser {{ background: transparent; border: none; color: {THEME.text_secondary}; font-size: {THEME.font_size_base}px; }}"
         )
-        self.notes.setMarkdown(info.notes or "_No release notes._")
+        self.notes.setMarkdown(info.notes or tr("_No release notes._"))
         root.addWidget(self.notes, stretch=1)
 
         self.status = QLabel("")
@@ -190,16 +192,16 @@ class UpdateDialog(QDialog):
         root.addWidget(self.bar)
 
         actions = QHBoxLayout()
-        self.page_button = QPushButton("Release Notes on GitHub")
+        self.page_button = QPushButton(tr("Release Notes on GitHub"))
         self.page_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(self.info.page_url)))
         actions.addWidget(self.page_button)
         actions.addStretch()
 
-        self.later_button = QPushButton("Later")
+        self.later_button = QPushButton(tr("Later"))
         self.later_button.clicked.connect(self.reject)
         actions.addWidget(self.later_button)
 
-        self.install_button = QPushButton("Install Update" if info.can_self_install else "Open Releases Page")
+        self.install_button = QPushButton(tr("Install Update") if info.can_self_install else tr("Open Releases Page"))
         self.install_button.setProperty("primary", True)
         self.install_button.setDefault(True)
         self.install_button.clicked.connect(self._on_install)
@@ -213,9 +215,9 @@ class UpdateDialog(QDialog):
             return
 
         self.install_button.setEnabled(False)
-        self.later_button.setText("Cancel")
+        self.later_button.setText(tr("Cancel"))
         self.bar.setVisible(True)
-        self._set_status(f"Downloading {self.info.asset_name}…")
+        self._set_status(tr("Downloading {name}…").format(name=self.info.asset_name))
 
         self._worker = DownloadWorker(self.info)
         self._worker.progress.connect(self._on_progress)
@@ -233,13 +235,15 @@ class UpdateDialog(QDialog):
             if self.bar.maximum() != total:
                 self.bar.setRange(0, total)
             self.bar.setValue(done)
-            self._set_status(f"Downloading {self.info.asset_name} — {_mb(done)} of {_mb(total)}")
+            self._set_status(
+                tr("Downloading {name} — {done} of {total}").format(name=self.info.asset_name, done=_mb(done), total=_mb(total))
+            )
 
     def _on_ready(self, path: Path) -> None:
         self.later_button.setEnabled(False)
         self.bar.setRange(0, 1)
         self.bar.setValue(1)
-        self._set_status("Installing — NegPy will close and reopen on the new version.")
+        self._set_status(tr("Installing — NegPy will close and reopen on the new version."))
 
         try:
             apply_update(path, self.info)
@@ -248,7 +252,7 @@ class UpdateDialog(QDialog):
             return
         except Exception as exc:
             logger.exception("Failed to start the installer")
-            self._on_failed(f"Could not start the installer: {exc}")
+            self._on_failed(tr("Could not start the installer: {error}").format(error=exc))
             return
 
         self.accept()
@@ -259,10 +263,10 @@ class UpdateDialog(QDialog):
 
     def _on_failed(self, message: str) -> None:
         self.bar.setVisible(False)
-        self._set_status(f"{message}\nYou can still download it from the releases page.")
+        self._set_status(tr("{message}\nYou can still download it from the releases page.").format(message=message))
         self.install_button.setEnabled(True)
         self.later_button.setEnabled(True)
-        self.later_button.setText("Close")
+        self.later_button.setText(tr("Close"))
 
     def reject(self) -> None:
         # The worker outlives this window (see `_own`), so closing need not block on a socket

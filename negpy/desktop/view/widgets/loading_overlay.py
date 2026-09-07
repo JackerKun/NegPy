@@ -3,6 +3,7 @@ from PyQt6.QtCore import QEvent, QObject, QSize, Qt, QTimer
 from PyQt6.QtWidgets import QLabel, QToolButton, QVBoxLayout, QWidget
 
 from negpy.desktop.view.styles.theme import THEME
+from negpy.kernel.system.i18n import tr
 
 
 class LoadingOverlay(QWidget):
@@ -32,7 +33,7 @@ class LoadingOverlay(QWidget):
         self._spinner.setIconSize(QSize(52, 52))
         layout.addWidget(self._spinner, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self._label = QLabel("Processing…")
+        self._label = QLabel(tr("Processing…"))
         self._label.setStyleSheet(
             f"color: {THEME.text_primary}; font-size: {THEME.font_size_title}px; font-weight: 600; "
             "background-color: rgba(10, 10, 10, 225); border: 1px solid rgba(255, 255, 255, 55); "

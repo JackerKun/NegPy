@@ -3,6 +3,7 @@
 import numpy as np
 
 from negpy.infrastructure.scanners.params import FilmType, film_reads_positive
+from negpy.kernel.system.i18n import tr
 
 
 class RollPreviewSignalsMixin:
@@ -40,7 +41,7 @@ class RollPreviewSignalsMixin:
     def _on_preview_progress(self, fraction: float, phase: str = "Scanning") -> None:
         if not self._previewing:
             return
-        self.status_strip.set_progress(f"{phase}… %p%", float(fraction))
+        self.status_strip.set_progress(tr("{phase}… %p%").format(phase=tr(phase)), float(fraction))
 
     def stop_preview(self) -> None:
         """Ask the transport to abandon the pass in flight. The worker answers with
