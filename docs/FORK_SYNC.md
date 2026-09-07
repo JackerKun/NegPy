@@ -29,6 +29,7 @@ git fetch upstream && git fetch origin
 | `negpy/kernel/system/i18n_zh.py` | 中文目录 `STRINGS`(约 1688 key)。`# fmt: off` 区块,ruff 不重排。 |
 | `negpy/desktop/main.py` | 启动时 `set_language()`,读全局设置 `language`。 |
 | `i18n_audit.py` | 本 fork 的审计工具:查重、列出待翻译新字符串、记录基点。 |
+| `docs/zh/` | 全部文档的简体中文翻译;英文文档原位不动(零上游冲突面)。新语言加平行目录(如 `docs/de/`)。 |
 
 ## 定期同步流程
 
@@ -87,6 +88,16 @@ git commit --no-edit                                   # 完成合并提交
 - 放在语义相邻的分组注释下(如相机相关放 `# ---- ... camera ... ----` 附近)。
 
 术语遵循下方**术语表**;同一概念在所有面板用同一词,新增标签前先 `grep` 现有译法。
+
+### 第 5b 步 · 文档翻译同步
+
+上游若改了文档,`docs/zh/` 的对应中文副本要跟着更新:
+
+```bash
+git diff --name-only <基点> upstream/main -- docs/ '*.md'
+```
+
+对列出的每个英文文档,把上游的改动同样应用到 `docs/zh/` 里的对应译文(只改受影响的小节即可,不必重译全文),并把该文件头部注记里的"对应 NegPy vX.Y.Z"更新为本次版本。`CLAUDE.md`、`AGENTS.md`、`LICENSE` 不翻译(AI 工具指令与法律文本);`docs/FORK_SYNC.md` 本身就是中文,无副本。
 
 ### 第 6 步 · 验证
 
