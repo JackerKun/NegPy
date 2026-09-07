@@ -17,22 +17,32 @@ on:
           - windows
           - linux
           - macos
+  push:
+    tags: ['v*']
 
 jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      version: ${{ steps.set-matrix.outputs.version }}
     steps:
       - id: set-matrix
         run: |
-          if [ "${{ github.event.inputs.platform }}" == "all" ]; then
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+            PLATFORM=all
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            PLATFORM="${{ github.event.inputs.platform }}"
+          fi
+          if [ "$PLATFORM" == "all" ]; then
             echo 'matrix=[{"os":"ubuntu-latest"},{"os":"windows-latest"},{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"}]' >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.platform }}" == "windows" ]; then
+          elif [ "$PLATFORM" == "windows" ]; then
             echo 'matrix=[{"os":"windows-latest"}]' >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.platform }}" == "linux" ]; then
+          elif [ "$PLATFORM" == "linux" ]; then
             echo 'matrix=[{"os":"ubuntu-latest"}]' >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.platform }}" == "macos" ]; then
+          elif [ "$PLATFORM" == "macos" ]; then
             echo 'matrix=[{"os":"macos-14","arch":"arm64"},{"os":"macos-15-intel","arch":"x86_64"}]' >> $GITHUB_OUTPUT
           fi
 
@@ -106,7 +116,7 @@ jobs:
       - name: Set Version
         shell: bash
         run: |
-          echo "${{ github.event.inputs.version }}" | sed 's/^v//' > VERSION
+          echo "${{ needs.setup.outputs.version }}" | sed 's/^v//' > VERSION
 
       - name: Set macOS target architecture
         if: startsWith(matrix.os, 'macos-')
@@ -123,7 +133,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: negpy-${{ matrix.os }}${{ matrix.arch && format('-{0}', matrix.arch) || '' }}-${{ github.event.inputs.version }}
+          name: negpy-${{ matrix.os }}${{ matrix.arch && format('-{0}', matrix.arch) || '' }}-${{ needs.setup.outputs.version }}
           if-no-files-found: error
           path: |
             dist/*.AppImage
@@ -131,7 +141,7 @@ jobs:
             dist/*.dmg
 
   publish:
-    needs: build
+    needs: [setup, build]
     runs-on: ubuntu-latest
     if: success()
     environment: production
@@ -148,8 +158,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: NegPy ${{ github.event.inputs.version }}
+          tag_name: ${{ needs.setup.outputs.version }}
+          name: NegPy ${{ needs.setup.outputs.version }}
           draft: false
           prerelease: false
           files: |

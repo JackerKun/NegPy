@@ -30,6 +30,7 @@ git fetch upstream && git fetch origin
 | `negpy/desktop/main.py` | 启动时 `set_language()`,读全局设置 `language`。 |
 | `i18n_audit.py` | 本 fork 的审计工具:查重、列出待翻译新字符串、记录基点。 |
 | `docs/zh/` | 全部文档的简体中文翻译;英文文档原位不动(零上游冲突面)。新语言加平行目录(如 `docs/de/`)。 |
+| `.github/workflows/release.yml` | 全平台构建发布流水线。fork 差异:tag(`v*`)推送触发,版本号统一在 setup 任务解析。冲突时上游构建逻辑为准,重新套上 tag 触发与 version 输出。 |
 
 ## 定期同步流程
 
@@ -168,6 +169,17 @@ grep -c 'ghp_' .git/config || echo "config clean"
 ```
 
 > **Token 安全**:PAT 一旦出现在聊天/命令里就视为泄露,用完到 GitHub → Settings → Developer settings → Personal access tokens **撤销并重新生成**。更稳妥的做法是用 `gh auth login` 或系统凭据管理器,避免每次粘贴 token。
+
+## 发布新版本(CI 自动构建)
+
+推一个 `v*` tag,即触发 GitHub Actions 全平台构建(Windows `.exe`、Linux `.AppImage`、macOS arm64/Intel `.dmg`),全部成功后自动发布到 fork 的 Releases 页面:
+
+```bash
+git tag v0.58.0-zh.1
+git push "https://JackerKun:${TOKEN}@github.com/JackerKun/NegPy.git" v0.58.0-zh.1
+```
+
+安装包版本号 = tag 名去掉前缀 `v`。也可在 GitHub → Actions → **Build and Publish** 手动触发,可选单个平台。fork 首次使用需在 Actions 页启用 workflows。
 
 ## 术语表(已裁定,新增翻译须沿用)
 
