@@ -201,12 +201,18 @@ STRINGS: dict[str, str] = {
     "Hard safety clamp around the assumed key. Raise to allow bigger exposure "
     "swings between frames; lower to keep a roll consistent.": "围绕假定基调的硬性安全区间。调高可允许帧间更大的曝光波动；调低则让整卷保持一致。",
     "AUTO GRADE": "自动反差等级",
-    "Auto Grade pulls each frame's contrast toward a target instead of printing the negative's own density range, so dense negatives stop printing over-contrasty and flat ones stop printing muddy.": "自动反差等级会将每帧的对比度拉向目标值，而不是按底片自身的密度范围印相，从而避免厚底片印得反差过高、薄底片印得灰暗浑浊。",
+    "Auto Grade picks each frame's grade from its textural density range, partially, so dense negatives stop printing over-contrasty and flat ones stop printing muddy.": "自动反差等级会依据每帧的纹理密度范围，部分地为每帧选择印相等级，从而避免厚底片印得反差过高、薄底片印得灰暗浑浊。",
     "Contrast Target": "对比度目标",
     "Printed contrast aimed for across all frames. Raise for punchier prints, lower for softer ones.": "所有帧力求达到的印相对比度。调高得到更有力度的印品，调低则更柔和。",
     "Adaptation Strength": "适应强度",
-    "How strongly the grade follows each scene's own range. 0 is a fixed grade "
-    "for every frame; 1 fully normalizes them to the same contrast.": "反差等级跟随每个场景自身范围的程度。0 为每帧使用固定等级；1 则把它们完全归一化到相同对比度。",
+    "How far the grade is pulled toward a normal negative's textural range. 0 prints "
+    "every frame on one fixed paper; 1 prints every frame's detail range alike.": "反差等级向正常底片纹理范围靠拢的程度。0 表示每帧都用同一种固定相纸印相；1 表示每帧的细节范围都印得一致。",
+    "Shadow Reach": "暗部深度",
+    "Print density the darkest textured tones must reach. The grade only goes harder "
+    "for it, so a flat negative still prints a black. Lower for softer shadows.": "最暗的有纹理色调必须达到的印相密度。反差等级只会为此变硬，因此薄底片依然能印出黑色。调低可获得更柔和的暗部。",
+    "Highlight Hold": "高光保持",
+    "Print density the brightest textured tones must keep, so a sunlit wall or sky holds "
+    "tone instead of printing paper white. 0 turns it off.": "最亮的有纹理色调必须保持的印相密度，让阳光下的墙面或天空保留层次，而不是印成纸白。0 表示关闭。",
 
     # ---- Generic small labels ----
     "Name": "名称",
@@ -1225,6 +1231,8 @@ STRINGS: dict[str, str] = {
     'CAMERA': '相机',
     'Camera scanning needs python-gphoto2, an optional dependency: `pip install gphoto2` (macOS and Linux — libgphoto2 has no Windows build). See docs/CAMERA_SCANNING.md.': '相机翻拍需要可选依赖 python-gphoto2：`pip install gphoto2`（macOS 与 Linux — libgphoto2 没有 Windows 版本）。参见 docs/CAMERA_SCANNING.md。',
     "Connect the camera by USB, in PC Remote mode — it's detected automatically.": '通过 USB 连接相机并置于 PC Remote 模式 — 会自动检测。',
+    'Delay between exposures': '两次曝光间隔',
+    'Wait this long between successive trichrome channel exposures so the camera can flush the previous shot.': '在连续的三色通道曝光之间等待这么久，以便相机清空上一张拍摄。',
     'Light': '光源',
     'You can also connect the Scanlight to scan in RGB.': '你也可以连接 Scanlight 进行 RGB 扫描。',
     'Capturing… %p%': '正在拍摄… %p%',

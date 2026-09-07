@@ -266,12 +266,12 @@ class ScanlightSidebar(QWidget):
         self.inter_exposure_delay_slider.setSingleStep(100)
         self.inter_exposure_delay_slider.setValue(self._settings.inter_exposure_delay_ms)
         self.inter_exposure_delay_slider.setToolTip(
-            "Wait this long between successive trichrome channel exposures so the camera can flush the previous shot."
+            tr("Wait this long between successive trichrome channel exposures so the camera can flush the previous shot.")
         )
         self.inter_exposure_delay_value = QLabel(f"{self._settings.inter_exposure_delay_ms} ms")
         self.inter_exposure_delay_value.setMinimumWidth(64)
         self.inter_exposure_delay_value.setStyleSheet(f"color: {THEME.text_muted}; font-size: {THEME.font_size_small}px;")
-        self.inter_exposure_delay_label = QLabel("Delay between exposures")
+        self.inter_exposure_delay_label = QLabel(tr("Delay between exposures"))
         self.inter_exposure_delay_layout.addWidget(self.inter_exposure_delay_label)
         self.inter_exposure_delay_layout.addWidget(self.inter_exposure_delay_slider, 1)
         self.inter_exposure_delay_layout.addWidget(self.inter_exposure_delay_value)
